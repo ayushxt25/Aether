@@ -51,7 +51,7 @@ A production-grade AI system for generating and modifying React UI components us
    ```
 
 5. **Open the application**:
-   Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
+   
 
 ## 📐 Architecture
 
