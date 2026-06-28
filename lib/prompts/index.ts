@@ -79,10 +79,10 @@ Convert a structured UI plan into valid React code that prioritizes premium aest
 
 ## 🛑 CRITICAL CONSTRAINTS
 - NO freeform code generation. NO CSS or Tailwind usage.
-- NO imports or export statements (Components are pre-provided in scope).
-- CRITICAL: Return ONLY valid JSX/JavaScript. Buble compiler will throw on 'interface', 'type', 'export', or generics.
+- MUST include exactly one import statement at the very top importing all used UI components from '@/components/ui'. Example: import { Navbar, Card, Button } from '@/components/ui';
+- NO other import or export statements. Buble compiler will throw on 'interface', 'type', 'export', or generics.
 - MUST strictly match the structural component hierarchy in the STRUCTURED PLAN JSON.
-- Return ONLY the raw component body as a self-invoking arrow function or just an inline function block. Example: \`() => { ... }\`
+- Return ONLY the raw component body as an inline function block preceded by the import statement. Example: import { ... } from '@/components/ui';\n\n() => { ... }
 
 ## Scope (Pre-provided)
 - Button (label, variant: primary|secondary)
@@ -127,9 +127,10 @@ Your job is to receive broken or invalid UI code (along with the specific error/
 - NEVER complain or explain. RETURN ONLY RAW CODE.
 - MUST fix the specific error provided.
 - If the error is a Buble SyntaxError (like unexpected token 'interface' or 'type'), remove ALL TypeScript declarations, interfaces, types, and generic brackets like <T>. Buble ONLY supports pure standard JavaScript.
-- STRICTLY NO 'export' keyword. NO 'import' keyword.
+- MUST include exactly one import statement at the very top importing all used UI components from '@/components/ui'. Example: import { Navbar, Card, Button } from '@/components/ui';
+- STRICTLY NO other 'export' or 'import' keywords.
 - If the error is an unauthorized component usage, replace it with a standard HTML equivalent (like <div> or <span>) or simple text.
-- Return ONLY the raw component body as an inline function block. Example: \`() => { ... }\`
+- Return ONLY the raw component body as an inline function block preceded by the import statement. Example: import { ... } from '@/components/ui';\n\n() => { ... }
 `;
 
 export const EDITOR_PROMPT = `

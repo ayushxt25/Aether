@@ -1,10 +1,10 @@
 import { GoogleGenAI } from '@google/genai';
 
-export async function callLLM(prompt: string, systemPrompt: string, jsonMode: boolean = false) {
+export async function callLLM(prompt: string, systemPrompt: string, jsonMode: boolean = false): Promise<string> {
     const AI_API_KEY = process.env.AI_API_KEY;
 
     // If no real key is provided, use Mock Mode
-    if (!AI_API_KEY) {
+    if (!AI_API_KEY || (global as any).useMockMode) {
         console.warn('Using Mock LLM Mode. Set AI_API_KEY for real responses.');
         await new Promise(r => setTimeout(r, 1000)); // Simulate latency
 
@@ -104,7 +104,10 @@ export async function callLLM(prompt: string, systemPrompt: string, jsonMode: bo
                     return `<${nodeType} ${props}>${processedChildren}</${nodeType}>`;
                 };
                 const generatedCode = renderNode(plan.layout);
-                return `() => {
+                const imports = plan.components_used && plan.components_used.length > 0
+                    ? `import { ${Array.from(new Set(plan.components_used)).join(', ')} } from '@/components/ui';\n\n`
+                    : '';
+                return `${imports}() => {
   return (
     ${generatedCode}
   );
@@ -133,6 +136,13 @@ export async function callLLM(prompt: string, systemPrompt: string, jsonMode: bo
 
         } catch (error: any) {
             const isQuotaError = error.message?.includes('429') || error.message?.includes('Quota');
+            const isAuthError = error.message?.includes('key') || error.message?.includes('403') || error.message?.includes('leaked') || error.message?.includes('PERMISSION_DENIED');
+
+            if (isAuthError) {
+                console.warn('[LLM] API Key invalid, leaked, or unauthorized. Falling back to Mock Mode.');
+                (global as any).useMockMode = true;
+                return callLLM(prompt, systemPrompt, jsonMode);
+            }
 
             if (isQuotaError && retries < maxRetries - 1) {
                 const waitTime = Math.pow(2, retries) * 3000 + (Math.random() * 1000);

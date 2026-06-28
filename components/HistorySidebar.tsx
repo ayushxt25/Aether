@@ -14,7 +14,7 @@ interface HistorySidebarProps {
 
 export default function HistorySidebar({ history, currentId, onRollback, isOpen, onToggle }: HistorySidebarProps) {
     return (
-        <div className={`fixed right-0 top-0 h-full bg-[#0a0a0a] border-l border-white/10 transition-all duration-300 z-50 ${isOpen ? 'w-80' : 'w-0'}`}>
+        <div className={`fixed right-0 top-0 h-full bg-[#0a0a0a] border-l border-white/10 transition-all duration-300 z-50 overflow-hidden ${isOpen ? 'w-80' : 'w-0'}`}>
             <button
                 onClick={onToggle}
                 className="absolute left-0 top-1/2 -translate-x-full bg-[#0a0a0a] border border-white/10 p-2 rounded-l-md hover:bg-white/5"

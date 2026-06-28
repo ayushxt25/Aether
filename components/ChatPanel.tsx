@@ -1,15 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Input } from './ui';
 import { useAppState } from '@/lib/state/appState';
 import { Send, Sparkles, AlertCircle } from 'lucide-react';
 import { Version } from '@/types/plan';
+import { DiffViewer } from './DiffViewer';
 
 interface Message {
     role: 'user' | 'assistant';
     content: string;
     isError?: boolean;
+    // Metadata for DiffViewer
+    diffMode?: 'create' | 'modify';
+    plan?: any;
+    oldPlan?: any;
+    newPlan?: any;
+    code?: string;
 }
 
 interface ChatPanelProps {
@@ -22,7 +28,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
     const { themeConfig } = state;
 
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: "Hello! I'm your AI UI Architect. What would you like to build today?" }
+        { role: 'assistant', content: "Hello! I'm your AI UI Architect. Describe what you'd like to build and I'll generate it instantly." }
     ]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -43,8 +49,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
 
             const actualVersionId = isFreshIntent ? undefined : currentVersionId;
             const endpoint = actualVersionId ? '/api/modify' : '/api/generate';
+            const diffMode: 'create' | 'modify' = actualVersionId ? 'modify' : 'create';
 
-            const richIntent = `[CONTEXT: The current UI theme is ${themeConfig.theme}, with primary color ${themeConfig.primaryColor}, secondary color ${themeConfig.secondaryColor}, and font ${themeConfig.fontFamily}. Ensure any generic references to colors use these settings or 'var(--primary)'.]\n\nUser Request: ${userMessage.content}`;
+            const richIntent = `[CONTEXT: The current UI theme is ${themeConfig.theme}, with primary color ${themeConfig.primaryColor}, secondary color ${themeConfig.secondaryColor}, and font ${themeConfig.fontFamily}. Ensure any generic references to colors use these settings or 'var(--primary)'.]\\n\\nUser Request: ${userMessage.content}`;
 
             const body = actualVersionId
                 ? { intent: richIntent, versionId: actualVersionId }
@@ -59,13 +66,24 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
             const data = await response.json();
             if (data.error) throw new Error(data.error);
 
-            setMessages(prev => [...prev, {
+            const assistantMessage: Message = {
                 role: 'assistant',
-                content: `${data.explanation}\n\n**Reasoning:** ${data.plan.reasoning}\n\n*${data.plan.constraint_notice || ''}*`
-            }]);
+                content: `${data.explanation}\n\n**Reasoning:** ${data.plan.reasoning}${data.plan.constraint_notice ? `\n\n*${data.plan.constraint_notice}*` : ''}`,
+                diffMode,
+                plan: data.plan,
+                code: data.code,
+                // For modify mode, oldPlan comes from previous version
+                newPlan: diffMode === 'modify' ? data.plan : undefined,
+            };
+
+            setMessages(prev => [...prev, assistantMessage]);
             onNewVersion(data);
         } catch (err: any) {
-            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${err.message}`, isError: true }]);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `Error: ${err.message}`,
+                isError: true
+            }]);
         } finally {
             setLoading(false);
         }
@@ -102,6 +120,21 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
                             }`}>
                             {m.isError && <AlertCircle className="w-4 h-4 mb-2 opacity-50" />}
                             <div className="whitespace-pre-wrap">{m.content}</div>
+
+                            {/* DiffViewer for assistant messages with diff data */}
+                            {m.role === 'assistant' && !m.isError && m.diffMode === 'create' && m.plan && (
+                                <DiffViewer
+                                    mode="create"
+                                    plan={m.plan}
+                                    code={m.code}
+                                />
+                            )}
+                            {m.role === 'assistant' && !m.isError && m.diffMode === 'modify' && m.newPlan && (
+                                <DiffViewer
+                                    mode="modify"
+                                    newPlan={m.newPlan}
+                                />
+                            )}
                         </div>
                         <span className="text-[10px] text-white/20 mt-1 px-1">
                             {m.role === 'user' ? 'You' : 'Architect'}
@@ -134,7 +167,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
                     </button>
                 </div>
                 <p className="text-[10px] text-white/20 mt-3 text-center">
-                    Shift + Enter for new line • Currently editing v{currentVersionId || 'new'}
+                    Shift + Enter for new line · Editing v{currentVersionId || 'new'}
                 </p>
             </div>
         </div>

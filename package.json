@@ -10,11 +10,8 @@
   },
   "dependencies": {
     "@google/genai": "^1.43.0",
-    "@monaco-editor/react": "latest",
-    "groq-sdk": "^0.37.0",
     "lucide-react": "latest",
     "next": "latest",
-    "openai": "latest",
     "react": "latest",
     "react-dom": "latest",
     "react-live": "latest",

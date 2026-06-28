@@ -7,13 +7,22 @@ import { checkPromptSafety } from '@/lib/security/promptGuard';
 import { runFixer } from '@/lib/agents/fixer';
 import { validateGeneratedCode } from '@/lib/validation/codeValidator';
 
+import { z } from 'zod';
+
+const GenerateRequestSchema = z.object({
+    intent: z.string().min(1, 'Intent is required')
+});
+
 export async function POST(req: NextRequest) {
     try {
-        const { intent } = await req.json();
-
-        if (!intent) {
-            return NextResponse.json({ error: 'Intent is required' }, { status: 400 });
+        const body = await req.json().catch(() => ({}));
+        const parseResult = GenerateRequestSchema.safeParse(body);
+        
+        if (!parseResult.success) {
+            return NextResponse.json({ error: parseResult.error.issues[0]?.message ?? 'Invalid request' }, { status: 400 });
         }
+
+        const { intent } = parseResult.data;
 
         const safety = checkPromptSafety(intent);
         if (!safety.safe) {

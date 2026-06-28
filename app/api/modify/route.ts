@@ -7,13 +7,23 @@ import { validateGeneratedCode } from '@/lib/validation/codeValidator';
 import { versionStore } from '@/lib/versioning/versionStore';
 import { checkPromptSafety } from '@/lib/security/promptGuard';
 
+import { z } from 'zod';
+
+const ModifyRequestSchema = z.object({
+    intent: z.string().min(1, 'Intent is required'),
+    versionId: z.number().int().positive('Version ID must be a positive integer')
+});
+
 export async function POST(req: NextRequest) {
     try {
-        const { intent, versionId } = await req.json();
-
-        if (!intent || typeof versionId !== 'number') {
-            return NextResponse.json({ error: 'Intent and versionId are required' }, { status: 400 });
+        const body = await req.json().catch(() => ({}));
+        const parseResult = ModifyRequestSchema.safeParse(body);
+        
+        if (!parseResult.success) {
+            return NextResponse.json({ error: parseResult.error.issues[0]?.message ?? 'Invalid request' }, { status: 400 });
         }
+
+        const { intent, versionId } = parseResult.data;
 
         const safety = checkPromptSafety(intent);
         if (!safety.safe) {
