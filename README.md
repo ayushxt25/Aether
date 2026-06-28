@@ -1,4 +1,4 @@
-# AI UI Generator
+# Aether
 
 A production-grade AI system for generating and modifying React UI components using natural language prompts. This project features a 3-agent orchestration pipeline to ensure deterministic, high-quality, and secure code generation.
 
