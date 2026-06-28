@@ -16,6 +16,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({ code }) => {
     const { themeConfig } = state;
     const [mode, setMode] = React.useState<'preview' | 'code'>('preview');
 
+    // Strip import statements from AI-generated code before passing to Buble/react-live.
+    // react-live uses Buble, which doesn't support ES6 import/export syntax.
+    // Components are already available via the LiveProvider scope.
+    const sanitizedCode = code.replace(/^import\s+.*?;?\s*$/gm, '').trim();
+
     return (
         <div style={{
             flex: 1.2,
@@ -74,7 +79,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({ code }) => {
 
             <div style={{ flex: 1, overflow: 'auto', padding: '20px', position: 'relative' }}>
                 {mode === 'preview' ? (
-                    <LiveProvider code={code} scope={{ ...UI, useAppState, useDataFetch, MOCK_DATA, React, useEffect: React.useEffect, useState: React.useState }} noInline={false}>
+                    <LiveProvider code={sanitizedCode} scope={{ ...UI, useAppState, useDataFetch, MOCK_DATA, React, useEffect: React.useEffect, useState: React.useState }} noInline={false}>
                         <div style={{
                             minHeight: '100%',
                             background: themeConfig.theme === 'dark' ? '#1e293b' : '#ffffff',
