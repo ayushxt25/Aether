@@ -118,20 +118,15 @@ export async function callLLM(prompt: string, systemPrompt: string, jsonMode: bo
 
     let retries = 0;
     const maxRetries = 3;
-    const models = ['gemini-1.5-flash-8b', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'];
+    const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-2.0-flash-exp'];
 
     while (retries < maxRetries) {
         const modelToUse = models[retries % models.length];
         try {
-            const ai = new GoogleGenAI({ apiKey: AI_API_KEY });
+            const ai = new GoogleGenAI({ apiKey: AI_API_KEY, apiVersion: 'v1beta' });
             const response = await ai.models.generateContent({
                 model: modelToUse,
-                contents: prompt,
-                config: {
-                    systemInstruction: systemPrompt,
-                    responseMimeType: jsonMode ? 'application/json' : 'text/plain',
-                    temperature: 0.1,
-                }
+                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${prompt}` }] }]
             });
 
             return response.text || '';

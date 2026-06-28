@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatPanel } from '@/components/ChatPanel';
-import { CodePanel } from '@/components/CodePanel';
 import { PreviewPanel } from '@/components/PreviewPanel';
-import { VersionHistory } from '@/components/VersionHistory';
+import HistorySidebar from '@/components/HistorySidebar';
 import { ThemeSettings } from '@/components/ThemeSettings';
 import { AppStateProvider } from '@/lib/state/appState';
+import { Version } from '@/types/plan';
 
 const INITIAL_CODE = `
 () => {
@@ -31,17 +31,25 @@ const INITIAL_CODE = `
 `;
 
 export default function Home() {
-  const [version, setVersion] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [version, setVersion] = useState<Version | null>(null);
+  const [history, setHistory] = useState<Version[]>([]);
   const [code, setCode] = useState(INITIAL_CODE);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
 
-  const handleNewVersion = (v: any) => {
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch('/api/history');
+      const data = await res.json();
+      if (data.history) setHistory(data.history);
+    } catch (err) {
+      console.error('Failed to fetch history:', err);
+    }
+  };
+
+  const handleNewVersion = (v: Version) => {
     setVersion(v);
     setCode(v.code);
-    setHistory(prev => {
-      if (prev.find(item => item.id === v.id)) return prev;
-      return [...prev, v];
-    });
+    fetchHistory();
   };
 
   const handleRollback = async (id: number) => {
@@ -49,32 +57,46 @@ export default function Home() {
       const response = await fetch('/api/rollback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ versionId: id })
+        body: JSON.stringify({ id })
       });
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      setVersion(data);
-      setCode(data.code);
+
+      setVersion(data.version);
+      setCode(data.version.code);
     } catch (err: any) {
       alert(`Rollback failed: ${err.message}`);
     }
   };
 
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
   return (
     <AppStateProvider>
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', width: '400px', borderRight: '1px solid rgba(255, 255, 255, 0.1)' }}>
+      <main className="flex h-screen w-screen overflow-hidden bg-[#050505] text-white">
+        <div className="flex flex-1 overflow-hidden relative">
+          {/* Main Left Panels */}
+          <div className="flex flex-col w-[400px] border-r border-white/10 bg-[#0a0a0a]">
             <ThemeSettings />
-            <ChatPanel onNewVersion={handleNewVersion} currentVersionId={version?.id} />
+            <ChatPanel onNewVersion={handleNewVersion} currentVersionId={version?.id ?? undefined} />
           </div>
-          <PreviewPanel code={code} />
+
+          {/* Center Preview */}
+          <div className="flex-1 overflow-hidden">
+            <PreviewPanel code={code} />
+          </div>
+
+          {/* Right Sidebar */}
+          <HistorySidebar
+            history={history}
+            currentId={version?.id || null}
+            onRollback={handleRollback}
+            isOpen={isHistoryOpen}
+            onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+          />
         </div>
-        <VersionHistory
-          versions={history}
-          onRollback={handleRollback}
-          currentVersionId={version?.id}
-        />
       </main>
     </AppStateProvider>
   );

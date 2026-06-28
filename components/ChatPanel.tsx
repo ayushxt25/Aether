@@ -1,17 +1,19 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Button, Input } from './ui';
 import { useAppState } from '@/lib/state/appState';
-import { DiffViewer } from './DiffViewer';
+import { Send, Sparkles, AlertCircle } from 'lucide-react';
+import { Version } from '@/types/plan';
 
 interface Message {
     role: 'user' | 'assistant';
     content: string;
+    isError?: boolean;
 }
 
 interface ChatPanelProps {
-    onNewVersion: (version: any) => void;
+    onNewVersion: (version: Version) => void;
     currentVersionId?: number;
 }
 
@@ -42,7 +44,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
             const actualVersionId = isFreshIntent ? undefined : currentVersionId;
             const endpoint = actualVersionId ? '/api/modify' : '/api/generate';
 
-            // Append the theme context to the intent so the prompt is aware
             const richIntent = `[CONTEXT: The current UI theme is ${themeConfig.theme}, with primary color ${themeConfig.primaryColor}, secondary color ${themeConfig.secondaryColor}, and font ${themeConfig.fontFamily}. Ensure any generic references to colors use these settings or 'var(--primary)'.]\n\nUser Request: ${userMessage.content}`;
 
             const body = actualVersionId
@@ -64,47 +65,77 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
             }]);
             onNewVersion(data);
         } catch (err: any) {
-            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${err.message}` }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${err.message}`, isError: true }]);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={{
-            width: '400px',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-            background: '#0f172a'
-        }}>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="flex flex-col h-full bg-[#0a0a0a] border-r border-white/10">
+            {/* Header */}
+            <div className="p-4 border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-white/60">Architect Chat</span>
+                </div>
+                {loading && (
+                    <div className="flex items-center gap-2 text-[10px] text-purple-400 font-medium">
+                        <div className="w-1 h-1 bg-purple-400 rounded-full animate-ping" />
+                        Thinking...
+                    </div>
+                )}
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/5">
                 {messages.map((m, i) => (
-                    <div key={i} style={{
-                        alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-                        maxWidth: '85%',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        fontSize: '14px',
-                        lineHeight: '1.5',
-                        background: m.role === 'user' ? '#4f46e5' : 'rgba(255, 255, 255, 0.05)',
-                        color: 'white',
-                        border: m.role === 'assistant' ? '1px solid rgba(255, 255, 255, 0.1)' : 'none'
-                    }}>
-                        {m.content}
+                    <div
+                        key={i}
+                        className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
+                    >
+                        <div className={`max-w-[90%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm ${m.role === 'user'
+                            ? 'bg-purple-600 text-white rounded-tr-none'
+                            : m.isError
+                                ? 'bg-red-500/10 border border-red-500/20 text-red-200 rounded-tl-none'
+                                : 'bg-white/5 border border-white/10 text-white/90 rounded-tl-none'
+                            }`}>
+                            {m.isError && <AlertCircle className="w-4 h-4 mb-2 opacity-50" />}
+                            <div className="whitespace-pre-wrap">{m.content}</div>
+                        </div>
+                        <span className="text-[10px] text-white/20 mt-1 px-1">
+                            {m.role === 'user' ? 'You' : 'Architect'}
+                        </span>
                     </div>
                 ))}
             </div>
 
-            <div style={{ padding: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', gap: '8px' }}>
-                <Input
-                    placeholder="Describe your UI..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                />
-                <Button label="Send" onClick={handleSend} />
+            {/* Input Area */}
+            <div className="p-4 border-t border-white/10 bg-[#0d0d0d]">
+                <div className="relative group">
+                    <textarea
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/50 transition-all resize-none min-h-[100px]"
+                        placeholder="Ask the architect to build something..."
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSend();
+                            }
+                        }}
+                    />
+                    <button
+                        onClick={handleSend}
+                        disabled={loading || !input.trim()}
+                        className="absolute bottom-3 right-3 p-2 bg-purple-500 text-white rounded-lg hover:bg-purple-400 disabled:opacity-30 disabled:hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/20"
+                    >
+                        <Send className="w-4 h-4" />
+                    </button>
+                </div>
+                <p className="text-[10px] text-white/20 mt-3 text-center">
+                    Shift + Enter for new line • Currently editing v{currentVersionId || 'new'}
+                </p>
             </div>
         </div>
     );

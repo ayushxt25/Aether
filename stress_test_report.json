@@ -1,0 +1,51 @@
+{
+  "stats": {
+    "total": 10,
+    "firstTrySuccess": 0,
+    "healedSuccess": 0,
+    "criticalFailures": 10,
+    "avgLatencyMs": 540
+  },
+  "failures": [
+    {
+      "intent": "Build a SaaS dashboard for an analytics company",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Create a beautiful glassmorphism landing page for a web3 startup",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Design an e-commerce product checkout form",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Generate a dark mode pricing tier section",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Build an internal tool for managing user bans with a data table",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Create a complex settings page with tabs and form inputs",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Design a mobile-first social media feed with cards",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Build a minimal login page with an email and password field",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Create a developer documentation layout with a sidebar and grid",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    },
+    {
+      "intent": "Design a generic corporate hero section with a primary CTA",
+      "error": "Failed to reach AI service: {\"error\":{\"code\":400,\"message\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\\nInvalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\",\"status\":\"INVALID_ARGUMENT\",\"details\":[{\"@type\":\"type.googleapis.com/google.rpc.BadRequest\",\"fieldViolations\":[{\"description\":\"Invalid JSON payload received. Unknown name \\\"systemInstruction\\\": Cannot find field.\"},{\"field\":\"generation_config\",\"description\":\"Invalid JSON payload received. Unknown name \\\"responseMimeType\\\" at 'generation_config': Cannot find field.\"}]}]}}"
+    }
+  ]
+}
