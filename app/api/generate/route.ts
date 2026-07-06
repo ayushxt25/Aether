@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { runPlanner } from '@/lib/agents/planner';
 import { runGenerator } from '@/lib/agents/generator';
 import { runExplainer } from '@/lib/agents/explainer';
-import { versionStore } from '@/lib/versioning/versionStore';
+import { createVersionInDb } from '@/lib/versioning/dbVersionStore';
 import { checkPromptSafety } from '@/lib/security/promptGuard';
 import { runFixer } from '@/lib/agents/fixer';
 import { validateGeneratedCode } from '@/lib/validation/codeValidator';
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
         const explanation = await runExplainer(intent, plan);
 
-        const version = versionStore.push({
+        const version = await createVersionInDb({
             plan,
             code,
             explanation

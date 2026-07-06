@@ -57,7 +57,7 @@ export async function createVersionInDb(params: {
         plan: JSON.parse(version.planJson),
         code: version.code,
         explanation: version.explanation,
-        timestamp: version.createdAt.getTime(),
+        timestamp: version.createdAt.toISOString(),
     };
 }
 
@@ -78,7 +78,7 @@ export async function getVersionsFromDb(): Promise<Version[]> {
         plan: JSON.parse(version.planJson),
         code: version.code,
         explanation: version.explanation,
-        timestamp: version.createdAt.getTime(),
+        timestamp: version.createdAt.toISOString(),
     }));
 }
 
@@ -98,6 +98,6 @@ export async function getVersionFromDb(id: number): Promise<Version | null> {
         plan: JSON.parse(version.planJson),
         code: version.code,
         explanation: version.explanation,
-        timestamp: version.createdAt.getTime(),
+        timestamp: version.createdAt.toISOString(),
     };
 }

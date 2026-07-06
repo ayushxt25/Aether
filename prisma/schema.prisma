@@ -2,8 +2,7 @@
 // Local development uses SQLite. Deployment can later move to PostgreSQL/Supabase.
 
 generator client {
-  provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
