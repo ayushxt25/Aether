@@ -17,7 +17,7 @@ A production-grade AI system for generating and modifying React UI components us
 
 | Layer       | Technology                        |
 |-------------|-----------------------------------|
-| Framework   | Next.js 14+ (App Router)          |
+| Framework   | Next.js 16 + React 19 (App Router)          |
 | Language    | TypeScript                        |
 | Styling     | Tailwind CSS + Vanilla CSS        |
 | AI Provider | Google Gemini (`@google/genai`)   |
@@ -84,6 +84,7 @@ User Prompt
     ▼
 [Live Preview]        → Renders via react-live with UI component scope
 ```
+Version history is currently stored in memory and resets when the server restarts. Persistent storage will be added in a later backend phase.
 
 ### Key Constraints (Buble Compiler)
 
