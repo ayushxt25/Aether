@@ -5,11 +5,15 @@ import { Search } from 'lucide-react';
 
 interface SearchInputProps {
     placeholder?: string;
-    value: string;
-    onChange: (val: string) => void;
+    value?: string;
+    onChange?: (val: string) => void;
 }
 
-export const SearchInput: React.FC<SearchInputProps> = ({ placeholder = "Search...", value, onChange }) => {
+export const SearchInput: React.FC<SearchInputProps> = ({
+    placeholder = "Search...",
+    value = "",
+    onChange
+}) => {
     return (
         <div style={{ position: 'relative', width: '100%' }}>
             <Search
@@ -26,7 +30,7 @@ export const SearchInput: React.FC<SearchInputProps> = ({ placeholder = "Search.
                 type="text"
                 placeholder={placeholder}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e) => onChange?.(e.target.value)}
                 style={{
                     width: '100%',
                     padding: '10px 12px 10px 40px',
