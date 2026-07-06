@@ -119,42 +119,124 @@ export async function callLLM(prompt: string, systemPrompt: string, jsonMode: bo
         return "() => <div>Failed to generate mock code. Check logs.</div>";
     }
 
-    let retries = 0;
-    const maxRetries = 3;
-    const models = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-2.0-flash-exp'];
+    const callOpenRouter = async (): Promise<string | null> => {
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openrouter/free';
 
-    while (retries < maxRetries) {
-        const modelToUse = models[retries % models.length];
-        try {
-            const ai = new GoogleGenAI({ apiKey: AI_API_KEY, apiVersion: 'v1beta' });
-            const response = await ai.models.generateContent({
-                model: modelToUse,
-                contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${prompt}` }] }]
-            });
-
-            return response.text || '';
-
-        } catch (error: any) {
-            const isQuotaError = error.message?.includes('429') || error.message?.includes('Quota');
-            const isAuthError = error.message?.includes('key') || error.message?.includes('403') || error.message?.includes('leaked') || error.message?.includes('PERMISSION_DENIED');
-
-            if (isAuthError) {
-                console.warn('[LLM] API Key invalid, leaked, or unauthorized. Falling back to Mock Mode.');
-                (global as any).useMockMode = true;
-                return callLLM(prompt, systemPrompt, jsonMode);
-            }
-
-            if (isQuotaError && retries < maxRetries - 1) {
-                const waitTime = Math.pow(2, retries) * 3000 + (Math.random() * 1000);
-                console.warn(`[LLM] Quota exceeded on ${models[retries % models.length]}. Retrying with ${models[(retries + 1) % models.length]} in ${Math.round(waitTime)}ms...`);
-                await new Promise(r => setTimeout(r, waitTime));
-                retries++;
-                continue;
-            }
-
-            console.error('Core AI Call Failed:', error);
-            throw new Error('Failed to reach AI service: ' + error.message);
-        }
+    if (!OPENROUTER_API_KEY) {
+        return null;
     }
-    return '';
+
+    try {
+        console.warn(`[LLM] Trying OpenRouter fallback with ${OPENROUTER_MODEL}...`);
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'http://localhost:3000',
+                'X-Title': 'Aether AI UI Generator',
+            },
+            body: JSON.stringify({
+                model: OPENROUTER_MODEL,
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemPrompt,
+                    },
+                    {
+                        role: 'user',
+                        content: prompt,
+                    },
+                ],
+                temperature: 0.4,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error('[LLM] OpenRouter fallback failed:', data);
+            return null;
+        }
+
+        return data?.choices?.[0]?.message?.content || null;
+    } catch (error) {
+        console.error('[LLM] OpenRouter fallback error:', error);
+        return null;
+    }
+};
+
+let retries = 0;
+const models = [
+    process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-2.0-flash',
+];
+const maxRetries = models.length;
+
+let lastErrorMessage = '';
+
+while (retries < maxRetries) {
+    const modelToUse = models[retries];
+
+    try {
+        const ai = new GoogleGenAI({ apiKey: AI_API_KEY, apiVersion: 'v1beta' });
+        const response = await ai.models.generateContent({
+            model: modelToUse,
+            contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${prompt}` }] }]
+        });
+
+        return response.text || '';
+    } catch (error: any) {
+        const errorMessage = error.message || '';
+        lastErrorMessage = errorMessage;
+
+        const isQuotaError =
+            errorMessage.includes('429') ||
+            errorMessage.toLowerCase().includes('quota') ||
+            errorMessage.includes('RESOURCE_EXHAUSTED');
+
+        const isAuthError =
+            errorMessage.toLowerCase().includes('key') ||
+            errorMessage.includes('401') ||
+            errorMessage.includes('403') ||
+            errorMessage.toLowerCase().includes('leaked') ||
+            errorMessage.includes('PERMISSION_DENIED');
+
+        const isModelError =
+            errorMessage.includes('404') ||
+            errorMessage.toLowerCase().includes('model') ||
+            errorMessage.toLowerCase().includes('not found');
+
+        if (isAuthError) {
+            console.warn('[LLM] Gemini API key invalid, leaked, or unauthorized.');
+            break;
+        }
+
+        if ((isModelError || isQuotaError) && retries < maxRetries - 1) {
+            console.warn(`[LLM] Gemini model ${modelToUse} failed. Trying ${models[retries + 1]}...`);
+            retries++;
+            continue;
+        }
+
+        console.warn('[LLM] Gemini unavailable. Trying OpenRouter fallback...');
+        break;
+    }
+}
+
+const openRouterResponse = await callOpenRouter();
+
+if (openRouterResponse) {
+    return openRouterResponse;
+}
+
+console.warn('[LLM] All AI providers failed. Falling back to Mock Mode.');
+if (lastErrorMessage) {
+    console.warn('[LLM] Last provider error:', lastErrorMessage);
+}
+
+(global as any).useMockMode = true;
+return callLLM(prompt, systemPrompt, jsonMode);
 }
