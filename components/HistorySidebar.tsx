@@ -12,63 +12,233 @@ interface HistorySidebarProps {
     onToggle: () => void;
 }
 
-export default function HistorySidebar({ history, currentId, onRollback, isOpen, onToggle }: HistorySidebarProps) {
+export default function HistorySidebar({
+    history,
+    currentId,
+    onRollback,
+    isOpen,
+    onToggle
+}: HistorySidebarProps) {
     return (
-        <div className={`fixed right-0 top-0 h-full bg-[#0a0a0a] border-l border-white/10 transition-all duration-300 z-50 overflow-hidden ${isOpen ? 'w-80' : 'w-0'}`}>
+        <aside
+            style={{
+                width: isOpen ? '320px' : '0px',
+                minWidth: isOpen ? '320px' : '0px',
+                height: '100%',
+                background: '#0a0a0a',
+                borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+                transition: 'width 0.3s ease, min-width 0.3s ease',
+                position: 'relative',
+                overflow: 'visible',
+                flexShrink: 0,
+            }}
+        >
             <button
                 onClick={onToggle}
-                className="absolute left-0 top-1/2 -translate-x-full bg-[#0a0a0a] border border-white/10 p-2 rounded-l-md hover:bg-white/5"
+                style={{
+                    position: 'absolute',
+                    left: '-40px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '40px',
+                    height: '40px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRight: 'none',
+                    borderRadius: '8px 0 0 8px',
+                    background: '#0a0a0a',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 20,
+                }}
+                title={isOpen ? 'Close history' : 'Open history'}
             >
-                <Clock className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <Clock
+                    size={18}
+                    style={{
+                        color: '#c084fc',
+                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease',
+                    }}
+                />
             </button>
 
-            <div className={`p-6 h-full flex flex-col ${isOpen ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100`}>
-                <div className="flex items-center gap-2 mb-8">
-                    <Clock className="w-5 h-5 text-purple-400" />
-                    <h2 className="text-lg font-semibold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
+            <div
+                style={{
+                    height: '100%',
+                    padding: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    opacity: isOpen ? 1 : 0,
+                    pointerEvents: isOpen ? 'auto' : 'none',
+                    transition: 'opacity 0.2s ease',
+                    overflow: 'hidden',
+                }}
+            >
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '32px',
+                        flexShrink: 0,
+                    }}
+                >
+                    <Clock size={18} color="#c084fc" />
+                    <h2
+                        style={{
+                            margin: 0,
+                            fontSize: '18px',
+                            fontWeight: 700,
+                            color: '#f8fafc',
+                        }}
+                    >
                         Version History
                     </h2>
                 </div>
 
-                <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/10">
-                    {history.slice().reverse().map((version) => (
-                        <div
-                            key={version.id}
-                            className={`group p-4 rounded-xl border transition-all cursor-pointer ${currentId === version.id
-                                    ? 'bg-purple-500/10 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)]'
-                                    : 'bg-white/5 border-white/5 hover:border-white/20 hover:bg-white/10'
-                                }`}
-                            onClick={() => onRollback(version.id)}
-                        >
-                            <div className="flex items-start justify-between mb-2">
-                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${currentId === version.id
-                                        ? 'bg-purple-500/20 text-purple-300'
-                                        : 'bg-white/10 text-white/40'
-                                    }`}>
-                                    v{version.id}
-                                </span>
-                                <span className="text-[10px] text-white/30 font-mono">
-                                    {new Date(version.timestamp).toLocaleTimeString()}
-                                </span>
-                            </div>
-                            <p className="text-sm text-white/80 line-clamp-2 leading-relaxed">
-                                {version.explanation}
-                            </p>
-                            <div className="mt-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-[10px] text-purple-400 font-medium">Click to restore</span>
-                                <RotateCcw className="w-3.5 h-3.5 text-purple-400" />
-                            </div>
-                        </div>
-                    ))}
+                <div
+                    style={{
+                        flex: 1,
+                        minHeight: 0,
+                        overflowY: 'auto',
+                        paddingRight: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                    }}
+                >
+                    {history.slice().reverse().map((version) => {
+                        const isCurrent = currentId === version.id;
+
+                        return (
+                            <button
+                                key={version.id}
+                                onClick={() => onRollback(version.id)}
+                                style={{
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    padding: '16px',
+                                    borderRadius: '12px',
+                                    border: isCurrent
+                                        ? '1px solid rgba(168, 85, 247, 0.5)'
+                                        : '1px solid rgba(255, 255, 255, 0.08)',
+                                    background: isCurrent
+                                        ? 'rgba(168, 85, 247, 0.12)'
+                                        : 'rgba(255, 255, 255, 0.04)',
+                                    color: '#ffffff',
+                                    cursor: 'pointer',
+                                    boxShadow: isCurrent
+                                        ? '0 0 20px rgba(168, 85, 247, 0.15)'
+                                        : 'none',
+                                    transition: 'border-color 0.2s ease, background 0.2s ease',
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'flex-start',
+                                        justifyContent: 'space-between',
+                                        gap: '8px',
+                                        marginBottom: '8px',
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            fontSize: '12px',
+                                            fontWeight: 600,
+                                            padding: '2px 8px',
+                                            borderRadius: '999px',
+                                            background: isCurrent
+                                                ? 'rgba(168, 85, 247, 0.2)'
+                                                : 'rgba(255, 255, 255, 0.08)',
+                                            color: isCurrent
+                                                ? '#d8b4fe'
+                                                : 'rgba(255, 255, 255, 0.45)',
+                                        }}
+                                    >
+                                        v{version.id}
+                                    </span>
+
+                                    <span
+                                        style={{
+                                            fontSize: '10px',
+                                            color: 'rgba(255, 255, 255, 0.35)',
+                                            fontFamily: 'monospace',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {new Date(version.timestamp).toLocaleTimeString()}
+                                    </span>
+                                </div>
+
+                                <p
+                                    style={{
+                                        margin: 0,
+                                        fontSize: '13px',
+                                        lineHeight: 1.5,
+                                        color: 'rgba(255, 255, 255, 0.78)',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                    }}
+                                >
+                                    {version.explanation}
+                                </p>
+
+                                <div
+                                    style={{
+                                        marginTop: '12px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        color: '#c084fc',
+                                    }}
+                                >
+                                    <span
+                                        style={{
+                                            fontSize: '10px',
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        Click to restore
+                                    </span>
+                                    <RotateCcw size={14} />
+                                </div>
+                            </button>
+                        );
+                    })}
 
                     {history.length === 0 && (
-                        <div className="text-center py-12">
-                            <Clock className="w-8 h-8 text-white/10 mx-auto mb-3" />
-                            <p className="text-sm text-white/30">No versions yet</p>
+                        <div
+                            style={{
+                                textAlign: 'center',
+                                padding: '48px 0',
+                            }}
+                        >
+                            <Clock
+                                size={32}
+                                style={{
+                                    color: 'rgba(255, 255, 255, 0.12)',
+                                    marginBottom: '12px',
+                                }}
+                            />
+                            <p
+                                style={{
+                                    margin: 0,
+                                    fontSize: '14px',
+                                    color: 'rgba(255, 255, 255, 0.35)',
+                                }}
+                            >
+                                No versions yet
+                            </p>
                         </div>
                     )}
                 </div>
             </div>
-        </div>
+        </aside>
     );
 }

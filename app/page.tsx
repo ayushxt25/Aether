@@ -74,30 +74,65 @@ export default function Home() {
   }, []);
 
   return (
-    <AppStateProvider>
-      <main className="flex h-screen w-screen overflow-hidden bg-[#050505] text-white">
-        <div className="flex flex-1 overflow-hidden relative">
-          {/* Main Left Panels */}
-          <div className="flex flex-col w-[400px] border-r border-white/10 bg-[#0a0a0a]">
-            <ThemeSettings />
-            <ChatPanel onNewVersion={handleNewVersion} currentVersionId={version?.id ?? undefined} />
-          </div>
-
-          {/* Center Preview */}
-          <div className="flex-1 overflow-hidden">
-            <PreviewPanel code={code} />
-          </div>
-
-          {/* Right Sidebar */}
-          <HistorySidebar
-            history={history}
-            currentId={version?.id || null}
-            onRollback={handleRollback}
-            isOpen={isHistoryOpen}
-            onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+   <AppStateProvider>
+    <main
+      style={{
+        display: 'flex',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#050505',
+        color: '#ffffff',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flex: 1,
+          minWidth: 0,
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        <aside
+          style={{
+            width: '400px',
+            minWidth: '400px',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+            background: '#0a0a0a',
+          }}
+        >
+          <ThemeSettings />
+          <ChatPanel
+            onNewVersion={handleNewVersion}
+            currentVersionId={version?.id ?? undefined}
           />
-        </div>
-      </main>
-    </AppStateProvider>
-  );
+        </aside>
+
+        <section
+          style={{
+            flex: 1,
+            minWidth: 0,
+            height: '100%',
+            overflow: 'hidden',
+          }}
+        >
+          <PreviewPanel code={code} />
+        </section>
+
+        <HistorySidebar
+          history={history}
+          currentId={version?.id || null}
+          onRollback={handleRollback}
+          isOpen={isHistoryOpen}
+          onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+        />
+      </div>
+    </main>
+  </AppStateProvider>
+);
 }
