@@ -5,8 +5,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "test:models": "ts-node scripts/stress_test.ts"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test:stress": "tsx scripts/stress_test.ts"
   },
   "dependencies": {
     "@google/genai": "^1.43.0",
@@ -23,6 +24,7 @@
     "@types/react-dom": "latest",
     "eslint": "latest",
     "eslint-config-next": "latest",
+    "tsx": "^4.23.0",
     "typescript": "latest"
   }
 }

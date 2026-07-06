@@ -107,7 +107,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({ code }) => {
                             {code}
                         </pre>
                         <p style={{ marginTop: '20px', fontSize: '12px', color: '#94a3b8' }}>
-                            * Code is derived directly from the AI Planner. Use the Chat Panel for partial rewrites (e.g. "Regenerate the Navbar to have a blue button") to maintain the deterministic valid AST.
+                            * Code is derived directly from the AI Planner. Use the Chat Panel for partial rewrites, for example &quot;Regenerate the Navbar to have a blue button&quot;, to maintain the deterministic valid AST.
                         </p>
                     </div>
                 )}
