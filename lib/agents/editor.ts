@@ -2,29 +2,32 @@ import { callLLM } from './llm';
 import { EDITOR_PROMPT } from '../prompts';
 import { validatePlan } from '../validation/planValidator';
 import { UIPlan } from '@/types/plan';
+import { extractJsonFromLLMResponse } from './responseUtils';
 
 export async function runEditor(intent: string, existingPlan: UIPlan): Promise<UIPlan> {
     const prompt = `
-    EXISTING PLAN:
-    ${JSON.stringify(existingPlan, null, 2)}
-    
-    USER MODIFICATION INTENT:
-    ${intent}
-    `;
+USER INTENT: ${intent}
+EXISTING PLAN: ${JSON.stringify(existingPlan)}
+`;
 
     const response = await callLLM(prompt, EDITOR_PROMPT, true);
     if (!response) throw new Error('Editor returned empty response');
 
-    let newPlan;
+    let newPlan: unknown;
+
     try {
-        newPlan = JSON.parse(response);
-    } catch (e) {
-        throw new Error('Editor failed to return valid JSON');
+        const cleanedResponse = extractJsonFromLLMResponse(response);
+        newPlan = JSON.parse(cleanedResponse);
+    } catch {
+        console.error('[Editor] Invalid JSON response from LLM:', response);
+        throw new Error('Editor returned invalid JSON. Please try again.');
     }
 
     const validation = validatePlan(newPlan);
+
     if (!validation.success) {
-        throw new Error('Edited plan failed structural Zod validation');
+        console.error('Edited Plan Validation Error:', JSON.stringify(validation.error, null, 2));
+        throw new Error(`Edited plan failed validation: ${JSON.stringify(validation.error)}`);
     }
 
     return validation.data as UIPlan;
