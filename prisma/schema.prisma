@@ -1,0 +1,58 @@
+// This is your Prisma schema file.
+// Local development uses SQLite. Deployment can later move to PostgreSQL/Supabase.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions    Version[]
+  promptRuns  PromptRun[]
+}
+
+model Version {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  versionNo   Int
+  prompt      String?
+  planJson    String
+  code        String
+  explanation String
+  createdAt   DateTime @default(now())
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  promptRuns  PromptRun[]
+
+  @@unique([projectId, versionNo])
+  @@index([projectId])
+}
+
+model PromptRun {
+  id             Int      @id @default(autoincrement())
+  projectId      Int
+  versionId      Int?
+  intent         String
+  mode           String
+  provider       String?
+  model          String?
+  status         String
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version        Version? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([versionId])
+}
