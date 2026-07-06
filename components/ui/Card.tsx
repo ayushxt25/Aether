@@ -1,12 +1,38 @@
 import React from 'react';
 
 interface CardProps {
-    title?: string;
-    children: React.ReactNode;
+    title?: React.ReactNode;
+    children?: React.ReactNode;
     style?: React.CSSProperties;
+    subtitle?: React.ReactNode;
+    description?: React.ReactNode;
+    image?: string;
 }
 
-export const Card: React.FC<CardProps> = ({ title, children, style }) => {
+function normalizeNode(value: React.ReactNode): React.ReactNode {
+    if (value === null || value === undefined) {
+        return null;
+    }
+
+    if (typeof value === 'object' && !React.isValidElement(value) && !Array.isArray(value)) {
+        return JSON.stringify(value);
+    }
+
+    return value;
+}
+
+export const Card: React.FC<CardProps> = ({
+    title,
+    subtitle,
+    description,
+    image,
+    children,
+    style
+}) => {
+    const safeTitle = normalizeNode(title);
+    const safeSubtitle = normalizeNode(subtitle);
+    const safeDescription = normalizeNode(description);
+
     const cardStyle: React.CSSProperties = {
         background: 'rgba(255, 255, 255, 0.05)',
         backdropFilter: 'blur(12px)',
@@ -26,14 +52,48 @@ export const Card: React.FC<CardProps> = ({ title, children, style }) => {
         fontWeight: 700,
         margin: 0,
         color: '#fff',
-        borderBottom: title ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-        paddingBottom: title ? '12px' : 0,
+    };
+
+    const subtitleStyle: React.CSSProperties = {
+        fontSize: '13px',
+        margin: 0,
+        color: '#94a3b8',
+        lineHeight: 1.5,
     };
 
     return (
         <div style={cardStyle}>
-            {title && <h3 style={titleStyle}>{title}</h3>}
-            <div style={{ flex: 1 }}>{children}</div>
+            {image && (
+                <div
+                    style={{
+                        width: '100%',
+                        height: '140px',
+                        borderRadius: '10px',
+                        backgroundImage: `url(${image})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    }}
+                />
+            )}
+
+            {(safeTitle || safeSubtitle || safeDescription) && (
+                <div
+                    style={{
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                        paddingBottom: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                    }}
+                >
+                    {safeTitle && <h3 style={titleStyle}>{safeTitle}</h3>}
+                    {safeSubtitle && <p style={subtitleStyle}>{safeSubtitle}</p>}
+                    {safeDescription && <p style={subtitleStyle}>{safeDescription}</p>}
+                </div>
+            )}
+
+            {children && <div style={{ flex: 1 }}>{normalizeNode(children)}</div>}
         </div>
     );
 };
