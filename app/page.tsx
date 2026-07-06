@@ -37,14 +37,19 @@ export default function Home() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(true);
 
   const fetchHistory = async () => {
-    try {
-      const res = await fetch('/api/history');
-      const data = await res.json();
-      if (data.history) setHistory(data.history);
-    } catch (err) {
-      console.error('Failed to fetch history:', err);
+  try {
+    const res = await fetch('/api/history');
+    const result = await res.json();
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to fetch history');
     }
-  };
+
+    setHistory(result.data.history || []);
+  } catch (err) {
+    console.error('Failed to fetch history:', err);
+  }
+};
 
   const handleNewVersion = (v: Version) => {
     setVersion(v);
@@ -53,21 +58,28 @@ export default function Home() {
   };
 
   const handleRollback = async (id: number) => {
-    try {
-      const response = await fetch('/api/rollback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
-      });
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
+  try {
+    const response = await fetch('/api/rollback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
 
-      setVersion(data.version);
-      setCode(data.version.code);
-    } catch (err: any) {
-      alert(`Rollback failed: ${err.message}`);
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Rollback failed');
     }
-  };
+
+    const restoredVersion = result.data.version;
+
+    setVersion(restoredVersion);
+    setCode(restoredVersion.code);
+    fetchHistory();
+  } catch (err: any) {
+    alert(`Rollback failed: ${err.message}`);
+  }
+};
 
   useEffect(() => {
     fetchHistory();

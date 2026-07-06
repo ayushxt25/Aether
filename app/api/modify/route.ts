@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { runEditor } from '@/lib/agents/editor';
 import { runGenerator } from '@/lib/agents/generator';
 import { runExplainer } from '@/lib/agents/explainer';
@@ -6,6 +6,7 @@ import { runFixer } from '@/lib/agents/fixer';
 import { validateGeneratedCode } from '@/lib/validation/codeValidator';
 import { versionStore } from '@/lib/versioning/versionStore';
 import { checkPromptSafety } from '@/lib/security/promptGuard';
+import { errorResponse, getErrorMessage, successResponse } from '@/lib/server/apiResponse';
 
 import { z } from 'zod';
 
@@ -18,27 +19,37 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json().catch(() => ({}));
         const parseResult = ModifyRequestSchema.safeParse(body);
-        
+
         if (!parseResult.success) {
-            return NextResponse.json({ error: parseResult.error.issues[0]?.message ?? 'Invalid request' }, { status: 400 });
+            return errorResponse(
+                'VALIDATION_ERROR',
+                parseResult.error.issues[0]?.message ?? 'Invalid request',
+                400
+            );
         }
 
         const { intent, versionId } = parseResult.data;
 
         const safety = checkPromptSafety(intent);
         if (!safety.safe) {
-            return NextResponse.json({ error: safety.reason }, { status: 403 });
+            return errorResponse(
+                'BAD_REQUEST',
+                safety.reason || 'Prompt failed safety checks.',
+                403
+            );
         }
 
         const existingVersion = versionStore.get(versionId);
         if (!existingVersion) {
-            return NextResponse.json({ error: 'Version not found' }, { status: 404 });
+            return errorResponse(
+                'VERSION_NOT_FOUND',
+                'Version not found.',
+                404
+            );
         }
 
-        // 1. Edit the Plan
         const newPlan = await runEditor(intent, existingVersion.plan);
 
-        // 2. Generate with Self-Healing Middleware
         let code = await runGenerator(newPlan, existingVersion.code);
         let retries = 0;
         let isStable = false;
@@ -46,32 +57,41 @@ export async function POST(req: NextRequest) {
 
         while (retries < maxRetries && !isStable) {
             const validationResult = validateGeneratedCode(code);
+
             if (validationResult.success) {
                 isStable = true;
             } else {
                 console.warn(`[Pipeline] Modification Self-Healing Attempt ${retries + 1}: ${validationResult.error}`);
-                code = await runFixer(code, validationResult.error || "Unknown error", retries);
+                code = await runFixer(code, validationResult.error || 'Unknown error', retries);
                 retries++;
             }
         }
 
         if (!isStable) {
-            throw new Error(`Unable to modify into a stable UI after ${maxRetries} self-healing attempts. Please reformulate.`);
+            return errorResponse(
+                'AI_PROVIDER_ERROR',
+                `Unable to modify into a stable UI after ${maxRetries} self-healing attempts. Please reformulate.`,
+                422
+            );
         }
 
-        // 3. Explain the Modification
         const explanation = await runExplainer(intent, newPlan);
 
-        // 4. Store
         const version = versionStore.push({
             plan: newPlan,
             code,
             explanation
         });
 
-        return NextResponse.json(version);
-    } catch (error: any) {
-        console.error('Modification Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return successResponse(version);
+    } catch (error: unknown) {
+        const message = getErrorMessage(error);
+        console.error('[API /modify] Modification Error:', error);
+
+        return errorResponse(
+            'INTERNAL_ERROR',
+            message,
+            500
+        );
     }
 }

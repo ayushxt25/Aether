@@ -63,8 +63,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ onNewVersion, currentVersi
                 body: JSON.stringify(body)
             });
 
-            const data = await response.json();
-            if (data.error) throw new Error(data.error);
+           const result = await response.json();
+
+           if (!result.success) {
+               throw new Error(result.error?.message || 'Request failed');
+            }
+
+            const data = result.data;
 
             const assistantMessage: Message = {
                 role: 'assistant',

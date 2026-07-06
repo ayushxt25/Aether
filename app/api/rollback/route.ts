@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import { versionStore } from '@/lib/versioning/versionStore';
+import { errorResponse, getErrorMessage, successResponse } from '@/lib/server/apiResponse';
 import { z } from 'zod';
 
 const RollbackRequestSchema = z.object({
@@ -12,18 +12,35 @@ export async function POST(req: Request) {
         const parseResult = RollbackRequestSchema.safeParse(body);
 
         if (!parseResult.success) {
-            return NextResponse.json({ error: parseResult.error.issues[0]?.message ?? 'Invalid request' }, { status: 400 });
+            return errorResponse(
+                'VALIDATION_ERROR',
+                parseResult.error.issues[0]?.message ?? 'Invalid request',
+                400
+            );
         }
 
         const { id } = parseResult.data;
         const version = versionStore.rollback(id);
 
         if (!version) {
-            return NextResponse.json({ error: 'Version not found' }, { status: 404 });
+            return errorResponse(
+                'VERSION_NOT_FOUND',
+                'Version not found.',
+                404
+            );
         }
 
-        return NextResponse.json({ version });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return successResponse({
+            version
+        });
+    } catch (error: unknown) {
+        const message = getErrorMessage(error);
+        console.error('[API /rollback] Rollback Error:', error);
+
+        return errorResponse(
+            'INTERNAL_ERROR',
+            message,
+            500
+        );
     }
 }
