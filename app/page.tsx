@@ -445,7 +445,7 @@ const handleDuplicateVersion = async (id: number) => {
         <div
           style={{
             position: 'fixed',
-            top: '16px',
+            bottom: '20px',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 100,
@@ -453,10 +453,11 @@ const handleDuplicateVersion = async (id: number) => {
             gap: '6px',
             padding: '6px',
             borderRadius: '999px',
-            background: 'rgba(15, 23, 42, 0.88)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'rgba(15, 23, 42, 0.92)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
             backdropFilter: 'blur(16px)',
-          }}
+            boxShadow: '0 18px 60px rgba(0, 0, 0, 0.45)',
+}}
         >
           <button
             type="button"
