@@ -225,6 +225,79 @@ export default function Home() {
   await fetchHistory(run.projectId);
 };
 
+const handleDuplicateRun = async (run: PromptRun) => {
+  const response = await fetch(`/api/versions/${run.versionId}/duplicate?projectId=${run.projectId}`, {
+    method: 'POST',
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    alert(result.error?.message || 'Failed to duplicate run');
+    return;
+  }
+
+  await fetchRuns();
+
+  if (currentProject?.id === run.projectId) {
+    await fetchHistory(run.projectId);
+  }
+};
+
+const handleForkRun = async (run: PromptRun) => {
+  const projectName = window.prompt('Name for the forked project');
+
+  const response = await fetch(`/api/versions/${run.versionId}/fork`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      projectName: projectName?.trim() || undefined,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    alert(result.error?.message || 'Failed to fork run');
+    return;
+  }
+
+  await fetchProjects();
+  await fetchRuns();
+};
+
+const handleDeleteRun = async (run: PromptRun) => {
+  const confirmed = window.confirm(`Delete ${run.projectName} v${run.versionNo || run.versionId}?`);
+
+  if (!confirmed) {
+    return;
+  }
+
+  const response = await fetch(`/api/versions/${run.versionId}?projectId=${run.projectId}`, {
+    method: 'DELETE',
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    alert(result.error?.message || 'Failed to delete run');
+    return;
+  }
+
+  setRuns((prev) => prev.filter((item) => item.versionId !== run.versionId));
+
+  if (currentProject?.id === run.projectId) {
+    await fetchHistory(run.projectId);
+
+    if (version?.id === run.versionId) {
+      setVersion(null);
+      setCode(INITIAL_CODE);
+    }
+  }
+};
+
   const handleDeleteProject = async (projectId: number) => {
     const res = await fetch(`/api/projects/${projectId}`, {
       method: 'DELETE',
@@ -575,10 +648,13 @@ const handleDuplicateVersion = async (id: number) => {
           </div>
         ) : (
           <PromptRunsView
-            runs={runs}
-            isLoading={isRunsLoading}
-            onOpenRun={handleOpenRun}
-            onRefresh={fetchRuns}
+             runs={runs}
+             isLoading={isRunsLoading}
+             onOpenRun={handleOpenRun}
+             onDuplicateRun={handleDuplicateRun}
+             onForkRun={handleForkRun}
+             onDeleteRun={handleDeleteRun}
+             onRefresh={fetchRuns}
           />
         )}
       </main>

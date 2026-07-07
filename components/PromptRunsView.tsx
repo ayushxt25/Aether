@@ -1,13 +1,24 @@
 'use client';
 
 import React from 'react';
-import { Clock, ExternalLink, Search, Sparkles } from 'lucide-react';
+import {
+    Clock,
+    Copy,
+    ExternalLink,
+    GitBranch,
+    Search,
+    Sparkles,
+    Trash2,
+} from 'lucide-react';
 import { PromptRun } from '@/types/run';
 
 interface PromptRunsViewProps {
     runs: PromptRun[];
     isLoading: boolean;
     onOpenRun: (run: PromptRun) => void;
+    onDuplicateRun: (run: PromptRun) => void;
+    onForkRun: (run: PromptRun) => void;
+    onDeleteRun: (run: PromptRun) => void;
     onRefresh: () => void;
 }
 
@@ -31,6 +42,9 @@ export function PromptRunsView({
     runs,
     isLoading,
     onOpenRun,
+    onDuplicateRun,
+    onForkRun,
+    onDeleteRun,
     onRefresh,
 }: PromptRunsViewProps) {
     const [query, setQuery] = React.useState('');
@@ -154,6 +168,7 @@ export function PromptRunsView({
                     }}
                 >
                     <Search size={16} color="#94a3b8" />
+
                     <input
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
@@ -195,7 +210,7 @@ export function PromptRunsView({
                 style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: '28px 32px',
+                    padding: '28px 32px 96px',
                 }}
             >
                 {isLoading ? (
@@ -225,7 +240,7 @@ export function PromptRunsView({
                     <div
                         style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
                             gap: '18px',
                         }}
                     >
@@ -383,11 +398,107 @@ export function PromptRunsView({
                                         gap: '8px',
                                         color: '#64748b',
                                         fontSize: '12px',
-                                        marginTop: 'auto',
                                     }}
                                 >
                                     <Clock size={13} />
                                     {new Date(run.timestamp).toLocaleString()}
+                                </div>
+
+                                <div
+                                    style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                                        gap: '8px',
+                                        marginTop: 'auto',
+                                    }}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenRun(run)}
+                                        style={{
+                                            border: '1px solid rgba(168, 85, 247, 0.25)',
+                                            background: 'rgba(168, 85, 247, 0.1)',
+                                            color: '#e9d5ff',
+                                            borderRadius: '10px',
+                                            padding: '9px 8px',
+                                            fontSize: '11px',
+                                            fontWeight: 800,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px',
+                                        }}
+                                    >
+                                        <ExternalLink size={13} />
+                                        Open
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onDuplicateRun(run)}
+                                        style={{
+                                            border: '1px solid rgba(96, 165, 250, 0.25)',
+                                            background: 'rgba(59, 130, 246, 0.1)',
+                                            color: '#bfdbfe',
+                                            borderRadius: '10px',
+                                            padding: '9px 8px',
+                                            fontSize: '11px',
+                                            fontWeight: 800,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px',
+                                        }}
+                                    >
+                                        <Copy size={13} />
+                                        Copy
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onForkRun(run)}
+                                        style={{
+                                            border: '1px solid rgba(45, 212, 191, 0.25)',
+                                            background: 'rgba(20, 184, 166, 0.1)',
+                                            color: '#99f6e4',
+                                            borderRadius: '10px',
+                                            padding: '9px 8px',
+                                            fontSize: '11px',
+                                            fontWeight: 800,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px',
+                                        }}
+                                    >
+                                        <GitBranch size={13} />
+                                        Fork
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onDeleteRun(run)}
+                                        style={{
+                                            border: '1px solid rgba(248, 113, 113, 0.25)',
+                                            background: 'rgba(239, 68, 68, 0.1)',
+                                            color: '#fecaca',
+                                            borderRadius: '10px',
+                                            padding: '9px 8px',
+                                            fontSize: '11px',
+                                            fontWeight: 800,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px',
+                                        }}
+                                    >
+                                        <Trash2 size={13} />
+                                        Delete
+                                    </button>
                                 </div>
                             </article>
                         ))}
