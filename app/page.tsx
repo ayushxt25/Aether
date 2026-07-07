@@ -234,6 +234,40 @@ export default function Home() {
     }
   };
 
+  const handleForkVersion = async (id: number) => {
+  const projectName = window.prompt('Name for the forked project');
+
+  const response = await fetch(`/api/versions/${id}/fork`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      projectName: projectName?.trim() || undefined,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    alert(result.error?.message || 'Failed to fork version');
+    return;
+  }
+
+  const forkedProject: Project = result.data.project;
+  const forkedVersion: Version = result.data.version;
+
+  setProjects((prev) => [forkedProject, ...prev]);
+  setCurrentProject(forkedProject);
+  window.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, String(forkedProject.id));
+
+  setVersion(forkedVersion);
+  setCode(forkedVersion.code);
+  setHistory([forkedVersion]);
+
+  fetchProjects();
+};
+
   const handleDeleteVersion = async (id: number) => {
   if (!currentProject?.id) {
     return;
@@ -401,14 +435,15 @@ const handleDuplicateVersion = async (id: number) => {
           </section>
 
           <HistorySidebar
-             history={history}
-             currentId={version?.id || null}
-             onRollback={handleRollback}
-             onDeleteVersion={handleDeleteVersion}
-             onDuplicateVersion={handleDuplicateVersion}
-             isOpen={isHistoryOpen}
-             onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
-           />
+            history={history}
+            currentId={version?.id || null}
+            onRollback={handleRollback}
+            onDeleteVersion={handleDeleteVersion}
+            onDuplicateVersion={handleDuplicateVersion}
+            onForkVersion={handleForkVersion}
+            isOpen={isHistoryOpen}
+            onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+          />
         </div>
       </main>
     </AppStateProvider>

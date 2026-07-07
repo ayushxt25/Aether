@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Version } from '@/types/plan';
-import { Clock, RotateCcw, Trash2, Copy } from 'lucide-react';
+import { Clock, RotateCcw, Trash2, Copy, GitBranch } from 'lucide-react';
 
 interface HistorySidebarProps {
     history: Version[];
@@ -10,6 +10,7 @@ interface HistorySidebarProps {
     onRollback: (id: number) => void;
     onDeleteVersion: (id: number) => void;
     onDuplicateVersion: (id: number) => void;
+    onForkVersion: (id: number) => void;
     isOpen: boolean;
     onToggle: () => void;
 }
@@ -20,6 +21,7 @@ export default function HistorySidebar({
     onRollback,
     onDeleteVersion,
     onDuplicateVersion,
+    onForkVersion,
     isOpen,
     onToggle,
 }: HistorySidebarProps) {
@@ -239,6 +241,25 @@ export default function HistorySidebar({
                                         title="Duplicate version"
                                     >
                                         <Copy size={13} />
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onForkVersion(version.id)}
+                                        style={{
+                                            border: '1px solid rgba(45, 212, 191, 0.25)',
+                                            background: 'rgba(20, 184, 166, 0.08)',
+                                            color: '#99f6e4',
+                                            borderRadius: '8px',
+                                            padding: '8px 10px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        title="Fork into new project"
+                                    >
+                                        <GitBranch size={13} />
                                     </button>
 
                                     <button
