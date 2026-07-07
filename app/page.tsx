@@ -1,5 +1,7 @@
 "use client";
 
+import { PromptRunsView } from '@/components/PromptRunsView';
+import { PromptRun } from '@/types/run';
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChatPanel } from '@/components/ChatPanel';
 import { PreviewPanel } from '@/components/PreviewPanel';
@@ -42,6 +44,9 @@ export default function Home() {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [activeView, setActiveView] = useState<'workspace' | 'runs'>('workspace');
+  const [runs, setRuns] = useState<PromptRun[]>([]);
+  const [isRunsLoading, setIsRunsLoading] = useState(false);
 
   const fetchHistory = useCallback(async (
     projectId?: number,
@@ -112,6 +117,29 @@ export default function Home() {
     }
   }, [currentProject, fetchHistory]);
 
+  const fetchRuns = useCallback(async () => {
+  setIsRunsLoading(true);
+
+  try {
+    const res = await fetch('/api/runs', {
+      cache: 'no-store',
+    });
+
+    const result = await res.json();
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to fetch prompt runs');
+    }
+
+    setRuns(result.data.runs || []);
+  } catch (error) {
+    console.error('Failed to fetch prompt runs:', error);
+    setRuns([]);
+  } finally {
+    setIsRunsLoading(false);
+  }
+}, []);
+
   const handleCreateProject = async (name: string) => {
     const res = await fetch('/api/projects', {
       method: 'POST',
@@ -167,6 +195,35 @@ export default function Home() {
       prev?.id === projectId ? updatedProject : prev
     );
   };
+
+  const handleOpenRun = async (run: PromptRun) => {
+  const targetProject = projects.find((project) => project.id === run.projectId) || {
+    id: run.projectId,
+    name: run.projectName,
+    description: '',
+    createdAt: run.timestamp,
+    updatedAt: run.timestamp,
+  };
+
+  setCurrentProject(targetProject);
+  window.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, String(run.projectId));
+
+  setVersion({
+    id: run.versionId,
+    versionNo: run.versionNo,
+    prompt: run.prompt,
+    source: run.source,
+    plan: run.plan,
+    code: run.code,
+    explanation: run.explanation,
+    timestamp: run.timestamp,
+  });
+
+  setCode(run.code);
+  setActiveView('workspace');
+
+  await fetchHistory(run.projectId);
+};
 
   const handleDeleteProject = async (projectId: number) => {
     const res = await fetch(`/api/projects/${projectId}`, {
@@ -369,8 +426,9 @@ const handleDuplicateVersion = async (id: number) => {
   };
 
   useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+  fetchProjects();
+  fetchRuns();
+}, [fetchProjects, fetchRuns]);
 
   return (
     <AppStateProvider>
@@ -386,78 +444,142 @@ const handleDuplicateVersion = async (id: number) => {
       >
         <div
           style={{
+            position: 'fixed',
+            top: '16px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 100,
             display: 'flex',
-            flex: 1,
-            minWidth: 0,
-            overflow: 'hidden',
-            position: 'relative',
+            gap: '6px',
+            padding: '6px',
+            borderRadius: '999px',
+            background: 'rgba(15, 23, 42, 0.88)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(16px)',
           }}
         >
-          <aside
+          <button
+            type="button"
+            onClick={() => setActiveView('workspace')}
             style={{
-              width: '400px',
-              minWidth: '400px',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-              background: '#0a0a0a',
+              border: 'none',
+              borderRadius: '999px',
+              padding: '8px 14px',
+              background: activeView === 'workspace' ? 'rgba(168, 85, 247, 0.95)' : 'transparent',
+              color: activeView === 'workspace' ? '#ffffff' : '#94a3b8',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
             }}
           >
-            <ProjectSelector
-              projects={projects}
-              currentProjectId={currentProject?.id || null}
-              onSelectProject={handleSelectProject}
-              onCreateProject={handleCreateProject}
-              onRenameProject={handleRenameProject}
-              onDeleteProject={handleDeleteProject}
-            />
+            Workspace
+          </button>
 
-            <ThemeSettings />
-
-            <ChatPanel
-              onNewVersion={handleNewVersion}
-              currentVersionId={version?.id ?? undefined}
-              projectId={currentProject?.id || null}
-            />
-          </aside>
-
-          <section
+          <button
+            type="button"
+            onClick={() => {
+              setActiveView('runs');
+              fetchRuns();
+            }}
             style={{
+              border: 'none',
+              borderRadius: '999px',
+              padding: '8px 14px',
+              background: activeView === 'runs' ? 'rgba(168, 85, 247, 0.95)' : 'transparent',
+              color: activeView === 'runs' ? '#ffffff' : '#94a3b8',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+            }}
+          >
+            Prompt Runs
+          </button>
+        </div>
+
+        {activeView === 'workspace' ? (
+          <div
+            style={{
+              display: 'flex',
               flex: 1,
               minWidth: 0,
-              height: '100%',
               overflow: 'hidden',
+              position: 'relative',
             }}
           >
-            <PreviewPanel
-              code={code}
-              projectId={currentProject?.id}
-              onManualVersionSaved={(savedVersion) => {
-                setVersion(savedVersion);
-                setCode(savedVersion.code);
-                setHistory((prev) => [...prev, savedVersion]);
-
-                if (currentProject?.id) {
-                  fetchHistory(currentProject.id);
-                  fetchProjects();
-                }
+            <aside
+              style={{
+                width: '400px',
+                minWidth: '400px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+                borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+                background: '#0a0a0a',
               }}
-            />
-          </section>
+            >
+              <ProjectSelector
+                projects={projects}
+                currentProjectId={currentProject?.id || null}
+                onSelectProject={handleSelectProject}
+                onCreateProject={handleCreateProject}
+                onRenameProject={handleRenameProject}
+                onDeleteProject={handleDeleteProject}
+              />
 
-          <HistorySidebar
-            history={history}
-            currentId={version?.id || null}
-            onRollback={handleRollback}
-            onDeleteVersion={handleDeleteVersion}
-            onDuplicateVersion={handleDuplicateVersion}
-            onForkVersion={handleForkVersion}
-            isOpen={isHistoryOpen}
-            onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+              <ThemeSettings />
+
+              <ChatPanel
+                onNewVersion={handleNewVersion}
+                currentVersionId={version?.id ?? undefined}
+                projectId={currentProject?.id || null}
+              />
+            </aside>
+
+            <section
+              style={{
+                flex: 1,
+                minWidth: 0,
+                height: '100%',
+                overflow: 'hidden',
+              }}
+            >
+              <PreviewPanel
+                code={code}
+                projectId={currentProject?.id}
+                onManualVersionSaved={(savedVersion) => {
+                  setVersion(savedVersion);
+                  setCode(savedVersion.code);
+                  setHistory((prev) => [...prev, savedVersion]);
+
+                  if (currentProject?.id) {
+                    fetchHistory(currentProject.id);
+                    fetchProjects();
+                    fetchRuns();
+                  }
+                }}
+              />
+            </section>
+
+            <HistorySidebar
+              history={history}
+              currentId={version?.id || null}
+              onRollback={handleRollback}
+              onDeleteVersion={handleDeleteVersion}
+              onDuplicateVersion={handleDuplicateVersion}
+              onForkVersion={handleForkVersion}
+              isOpen={isHistoryOpen}
+              onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+            />
+          </div>
+        ) : (
+          <PromptRunsView
+            runs={runs}
+            isLoading={isRunsLoading}
+            onOpenRun={handleOpenRun}
+            onRefresh={fetchRuns}
           />
-        </div>
+        )}
       </main>
     </AppStateProvider>
   );
