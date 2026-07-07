@@ -114,6 +114,62 @@ export default function Home() {
     setHistory([]);
   };
 
+  const handleRenameProject = async (projectId: number, name: string) => {
+    const res = await fetch(`/api/projects/${projectId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+      }),
+    });
+
+    const result = await res.json();
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to rename project');
+    }
+
+    const updatedProject: Project = result.data.project;
+
+    setProjects((prev) =>
+      prev.map((project) => project.id === projectId ? updatedProject : project)
+    );
+
+    setCurrentProject((prev) =>
+      prev?.id === projectId ? updatedProject : prev
+    );
+  };
+
+  const handleDeleteProject = async (projectId: number) => {
+    const res = await fetch(`/api/projects/${projectId}`, {
+      method: 'DELETE',
+    });
+
+    const result = await res.json();
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to delete project');
+    }
+
+    const remainingProjects = projects.filter((project) => project.id !== projectId);
+
+    setProjects(remainingProjects);
+
+    const nextProject = remainingProjects[0] || null;
+
+    setCurrentProject(nextProject);
+    setVersion(null);
+    setCode(INITIAL_CODE);
+
+    if (nextProject) {
+      await fetchHistory(nextProject.id);
+    } else {
+      setHistory([]);
+    }
+  };
+
   const handleSelectProject = async (project: Project) => {
     setCurrentProject(project);
     setVersion(null);
@@ -216,6 +272,8 @@ export default function Home() {
               currentProjectId={currentProject?.id || null}
               onSelectProject={handleSelectProject}
               onCreateProject={handleCreateProject}
+              onRenameProject={handleRenameProject}
+              onDeleteProject={handleDeleteProject}
             />
 
             <ThemeSettings />
