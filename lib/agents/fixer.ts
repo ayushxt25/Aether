@@ -1,3 +1,4 @@
+import { extractGeneratedComponentCode } from '@/lib/agents/codeUtils';
 import { callLLM } from './llm';
 import { FIXER_PROMPT } from '../prompts';
 
@@ -21,6 +22,5 @@ export async function runFixer(failedCode: string, compilationError: string, att
     const response = await callLLM(prompt, FIXER_PROMPT, false);
     if (!response) throw new Error('Fixer returned empty response');
 
-    // Clean markdown blocks
-    return response.replace(/```(javascript|jsx|react|typescript|tsx)?/g, '').replace(/```/g, '').trim();
+    return extractGeneratedComponentCode(response);
 }

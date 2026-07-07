@@ -70,7 +70,8 @@ export async function POST(req: NextRequest) {
         const version = await createVersionInDb({
             plan,
             code,
-            explanation
+            explanation,
+            prompt: intent
         });
 
         return successResponse(version);

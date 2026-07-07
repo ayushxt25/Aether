@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "@google/genai": "^1.43.0",
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "better-sqlite3": "^12.11.1",
     "lucide-react": "latest",
     "next": "latest",
     "prisma": "^7.8.0",
@@ -21,6 +23,7 @@
     "zod": "latest"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",

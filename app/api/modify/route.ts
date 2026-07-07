@@ -4,7 +4,7 @@ import { runGenerator } from '@/lib/agents/generator';
 import { runExplainer } from '@/lib/agents/explainer';
 import { runFixer } from '@/lib/agents/fixer';
 import { validateGeneratedCode } from '@/lib/validation/codeValidator';
-import { versionStore } from '@/lib/versioning/versionStore';
+import { createVersionInDb, getVersionFromDb } from '@/lib/versioning/dbVersionStore';
 import { checkPromptSafety } from '@/lib/security/promptGuard';
 import { errorResponse, getErrorMessage, successResponse } from '@/lib/server/apiResponse';
 
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const existingVersion = versionStore.get(versionId);
+        const existingVersion = await getVersionFromDb(versionId);
         if (!existingVersion) {
             return errorResponse(
                 'VERSION_NOT_FOUND',
@@ -77,11 +77,12 @@ export async function POST(req: NextRequest) {
 
         const explanation = await runExplainer(intent, newPlan);
 
-        const version = versionStore.push({
-            plan: newPlan,
-            code,
-            explanation
-        });
+        const version = await createVersionInDb({
+           plan: newPlan,
+           code,
+           explanation,
+           prompt: intent
+       });
 
         return successResponse(version);
     } catch (error: unknown) {

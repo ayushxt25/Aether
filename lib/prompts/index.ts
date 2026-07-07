@@ -110,6 +110,17 @@ Convert a structured UI plan into valid React code that prioritizes premium aest
 - Ensure 'children' in Tabs is a function: '(activeTabId) => <Content id={activeTabId} />'
 
 Return ONLY a single React arrow function.
+
+CRITICAL OUTPUT RULES:
+- Return ONLY a valid React arrow function component.
+- The first characters of your response must be: () =>
+- Do NOT return markdown.
+- Do NOT return explanations.
+- Do NOT use import statements.
+- Do NOT use export default.
+- Do NOT wrap code in triple backticks.
+- Do NOT use components outside the approved component whitelist.
+- The output must be executable directly inside react-live.
 `;
 
 export const EXPLAINER_PROMPT = `

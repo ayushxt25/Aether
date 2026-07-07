@@ -1,53 +1,83 @@
+import { looksLikeMarkdownInsteadOfCode } from '@/lib/agents/codeUtils';
 import { COMPONENT_WHITELIST } from './componentWhitelist';
 
 export function validateGeneratedCode(code: string): { success: boolean; error?: string } {
-    // 1. Check for prohibited imports
-    const importMatch = code.match(/import\s+{([^}]+)}\s+from\s+["']@\/components\/ui["']/);
-    if (!importMatch) {
-        return { success: false, error: 'Invalid or missing UI component imports' };
+    const trimmedCode = code.trim();
+
+    if (looksLikeMarkdownInsteadOfCode(trimmedCode)) {
+        return {
+            success: false,
+            error: 'Generated output is markdown/explanation text, not executable React component code.',
+        };
     }
 
-    const importedComponents = importMatch[1].split(',').map(c => c.trim());
-    for (const component of importedComponents) {
-        if (!COMPONENT_WHITELIST.includes(component)) {
-            return { success: false, error: `Unauthorized component import: ${component}` };
+    if (trimmedCode.includes('import ')) {
+        return {
+            success: false,
+            error: 'Generated code must not contain import statements because preview components are provided through react-live scope.',
+        };
+    }
+
+    if (trimmedCode.includes('export default')) {
+        return {
+            success: false,
+            error: 'Generated code must not contain export default. It must return only an arrow function component.',
+        };
+    }
+
+    if (!trimmedCode.startsWith('() =>')) {
+        return {
+            success: false,
+            error: 'Generated code must start with () => for react-live preview.',
+        };
+    }
+
+    if (trimmedCode.includes('className=') || trimmedCode.includes('.css') || trimmedCode.includes('styled-components')) {
+        if (trimmedCode.match(/className=["'][^"']*["']/)) {
+            return {
+                success: false,
+                error: 'Tailwind or CSS classes are prohibited. Use inline style objects only.',
+            };
         }
     }
 
-    // 2. Check for prohibited styling
-    if (code.includes('className=') || code.includes('.css') || code.includes('styled-components')) {
-        // Note: We allow basic style={} for layout flex/padding, but not CSS modules or Tailwind
-        if (code.match(/className=["'][^"']*["']/)) {
-            return { success: false, error: 'Tailwind or CSS classes are prohibited' };
-        }
-    }
+    const jsxTags = trimmedCode.match(/<([A-Z][a-zA-Z0-9]*)/g);
 
-    // 3. Simple Whitelist Usage Check (Regex-based for speed)
-    // Ensures ONLY whitelisted components are used as JSX tags
-    const jsxTags = code.match(/<([A-Z][a-zA-Z0-9]*)/g);
     if (jsxTags) {
         for (const tagMatch of jsxTags) {
             const tag = tagMatch.substring(1);
+
             if (!COMPONENT_WHITELIST.includes(tag) && tag !== 'React' && tag !== 'Fragment') {
-                // Allow common React fragments and standard HTML tags (lowercased)
-                if (tag[0] === tag[0].toUpperCase()) {
-                    return { success: false, error: `Unauthorized component usage: ${tag}` };
-                }
+                return {
+                    success: false,
+                    error: `Unauthorized component usage: ${tag}`,
+                };
             }
         }
     }
 
-    // 4. Buble Compilation Syntax Heuristics
-    // Buble compiler crashes on TS Interfaces, Types, and Export statements inline.
-    if (code.match(/\binterface\s+[A-Za-z0-9_]+\s*\{/)) {
-        return { success: false, error: "TypeScript 'interface' detected. React-Live (Buble) requires pure JavaScript." };
-    }
-    if (code.match(/\btype\s+[A-Za-z0-9_]+\s*=/)) {
-        return { success: false, error: "TypeScript 'type' definition detected. Pure JS only." };
-    }
-    if (code.match(/\bexport\s+(default|const|let|var|function|class)\b/)) {
-        return { success: false, error: "'export' statement detected. Return only the inline function." };
+    if (trimmedCode.match(/\binterface\s+[A-Za-z0-9_]+\s*\{/)) {
+        return {
+            success: false,
+            error: "TypeScript 'interface' detected. React-Live requires pure JavaScript.",
+        };
     }
 
-    return { success: true };
+    if (trimmedCode.match(/\btype\s+[A-Za-z0-9_]+\s*=/)) {
+        return {
+            success: false,
+            error: "TypeScript 'type' definition detected. Pure JS only.",
+        };
+    }
+
+    if (trimmedCode.match(/\bexport\s+(default|const|let|var|function|class)\b/)) {
+        return {
+            success: false,
+            error: "'export' statement detected. Return only the inline function.",
+        };
+    }
+
+    return {
+        success: true,
+    };
 }

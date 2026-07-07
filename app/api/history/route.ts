@@ -1,12 +1,12 @@
-import { versionStore } from '@/lib/versioning/versionStore';
+import { getVersionsFromDb } from '@/lib/versioning/dbVersionStore';
 import { errorResponse, getErrorMessage, successResponse } from '@/lib/server/apiResponse';
 
 export async function GET() {
     try {
-        const history = versionStore.getHistory();
+        const history = await getVersionsFromDb();
 
         return successResponse({
-            history
+            history,
         });
     } catch (error: unknown) {
         const message = getErrorMessage(error);

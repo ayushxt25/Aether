@@ -1,12 +1,13 @@
-import { versionStore } from '@/lib/versioning/versionStore';
+import { NextRequest } from 'next/server';
+import { getVersionFromDb } from '@/lib/versioning/dbVersionStore';
 import { errorResponse, getErrorMessage, successResponse } from '@/lib/server/apiResponse';
 import { z } from 'zod';
 
 const RollbackRequestSchema = z.object({
-    id: z.number().int().positive('ID must be a positive integer')
+    id: z.number(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         const body = await req.json().catch(() => ({}));
         const parseResult = RollbackRequestSchema.safeParse(body);
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
         }
 
         const { id } = parseResult.data;
-        const version = versionStore.rollback(id);
+        const version = await getVersionFromDb(id);
 
         if (!version) {
             return errorResponse(
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
         }
 
         return successResponse({
-            version
+            version,
         });
     } catch (error: unknown) {
         const message = getErrorMessage(error);
