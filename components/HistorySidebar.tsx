@@ -2,13 +2,14 @@
 
 import React from 'react';
 import { Version } from '@/types/plan';
-import { Clock, RotateCcw, Trash2 } from 'lucide-react';
+import { Clock, RotateCcw, Trash2, Copy } from 'lucide-react';
 
 interface HistorySidebarProps {
     history: Version[];
     currentId: number | null;
     onRollback: (id: number) => void;
     onDeleteVersion: (id: number) => void;
+    onDuplicateVersion: (id: number) => void;
     isOpen: boolean;
     onToggle: () => void;
 }
@@ -18,6 +19,7 @@ export default function HistorySidebar({
     currentId,
     onRollback,
     onDeleteVersion,
+    onDuplicateVersion,
     isOpen,
     onToggle,
 }: HistorySidebarProps) {
@@ -218,6 +220,25 @@ export default function HistorySidebar({
                                     >
                                         Restore
                                         <RotateCcw size={13} />
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onDuplicateVersion(version.id)}
+                                        style={{
+                                            border: '1px solid rgba(96, 165, 250, 0.25)',
+                                            background: 'rgba(59, 130, 246, 0.08)',
+                                            color: '#bfdbfe',
+                                            borderRadius: '8px',
+                                            padding: '8px 10px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        title="Duplicate version"
+                                    >
+                                        <Copy size={13} />
                                     </button>
 
                                     <button

@@ -275,6 +275,33 @@ export default function Home() {
   fetchProjects();
 };
 
+const handleDuplicateVersion = async (id: number) => {
+  if (!currentProject?.id) {
+    return;
+  }
+
+  const response = await fetch(`/api/versions/${id}/duplicate?projectId=${currentProject.id}`, {
+    method: 'POST',
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    alert(result.error?.message || 'Failed to duplicate version');
+    return;
+  }
+
+  const duplicatedVersion: Version = result.data.version;
+
+  setVersion(duplicatedVersion);
+  setCode(duplicatedVersion.code);
+
+  setHistory((prev) => [...prev, duplicatedVersion]);
+
+  fetchHistory(currentProject.id);
+  fetchProjects();
+};
+
   const handleRollback = async (id: number) => {
     try {
       const response = await fetch('/api/rollback', {
@@ -378,9 +405,10 @@ export default function Home() {
              currentId={version?.id || null}
              onRollback={handleRollback}
              onDeleteVersion={handleDeleteVersion}
+             onDuplicateVersion={handleDuplicateVersion}
              isOpen={isHistoryOpen}
              onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
-          />
+           />
         </div>
       </main>
     </AppStateProvider>
