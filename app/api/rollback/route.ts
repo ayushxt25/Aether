@@ -5,7 +5,8 @@ import { z } from 'zod';
 
 const RollbackRequestSchema = z.object({
     id: z.number(),
-});
+    projectId: z.number().optional(),
+}); 
 
 export async function POST(req: NextRequest) {
     try {
@@ -20,8 +21,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { id } = parseResult.data;
-        const version = await getVersionFromDb(id);
+        const { id, projectId } = parseResult.data;
+        const version = await getVersionFromDb(id, projectId);
 
         if (!version) {
             return errorResponse(

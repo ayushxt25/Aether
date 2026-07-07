@@ -11,7 +11,8 @@ import { errorResponse, getErrorMessage, successResponse } from '@/lib/server/ap
 import { z } from 'zod';
 
 const GenerateRequestSchema = z.object({
-    intent: z.string().min(1, 'Intent is required')
+    intent: z.string().min(1, 'Intent is required'),
+    projectId: z.number().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { intent } = parseResult.data;
+        const { intent, projectId } = parseResult.data;
 
         const safety = checkPromptSafety(intent);
         if (!safety.safe) {
@@ -71,7 +72,8 @@ export async function POST(req: NextRequest) {
             plan,
             code,
             explanation,
-            prompt: intent
+            prompt: intent,
+            projectId,
         });
 
         return successResponse(version);

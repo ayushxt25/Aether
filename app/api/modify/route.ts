@@ -12,7 +12,8 @@ import { z } from 'zod';
 
 const ModifyRequestSchema = z.object({
     intent: z.string().min(1, 'Intent is required'),
-    versionId: z.number().int().positive('Version ID must be a positive integer')
+    versionId: z.number().int().positive('Version ID must be a positive integer'),
+    projectId: z.number().int().positive('Project ID must be a positive integer').optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -28,9 +29,10 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { intent, versionId } = parseResult.data;
+        const { intent, versionId, projectId } = parseResult.data;
 
         const safety = checkPromptSafety(intent);
+
         if (!safety.safe) {
             return errorResponse(
                 'BAD_REQUEST',
@@ -39,7 +41,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const existingVersion = await getVersionFromDb(versionId);
+        const existingVersion = await getVersionFromDb(versionId, projectId);
+
         if (!existingVersion) {
             return errorResponse(
                 'VERSION_NOT_FOUND',
@@ -78,11 +81,12 @@ export async function POST(req: NextRequest) {
         const explanation = await runExplainer(intent, newPlan);
 
         const version = await createVersionInDb({
-           plan: newPlan,
-           code,
-           explanation,
-           prompt: intent
-       });
+            plan: newPlan,
+            code,
+            explanation,
+            prompt: intent,
+            projectId,
+        });
 
         return successResponse(version);
     } catch (error: unknown) {

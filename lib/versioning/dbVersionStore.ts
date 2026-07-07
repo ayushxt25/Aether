@@ -1,25 +1,19 @@
 import { prisma } from '@/lib/db/prisma';
 import { UIPlan, Version } from '@/types/plan';
+import { getOrCreateDefaultProject, getProjectById } from './dbProjectStore';
 
-const DEFAULT_PROJECT_NAME = 'Default Aether Project';
-
-async function getOrCreateDefaultProject() {
-    const existingProject = await prisma.project.findFirst({
-        where: {
-            name: DEFAULT_PROJECT_NAME,
-        },
-    });
-
-    if (existingProject) {
-        return existingProject;
+async function resolveProject(projectId?: number) {
+    if (!projectId) {
+        return getOrCreateDefaultProject();
     }
 
-    return prisma.project.create({
-        data: {
-            name: DEFAULT_PROJECT_NAME,
-            description: 'Default local project workspace for generated Aether UI versions.',
-        },
-    });
+    const project = await getProjectById(projectId);
+
+    if (!project) {
+        throw new Error('Project not found.');
+    }
+
+    return project;
 }
 
 export async function createVersionInDb(params: {
@@ -27,8 +21,9 @@ export async function createVersionInDb(params: {
     code: string;
     explanation: string;
     prompt?: string;
+    projectId?: number;
 }): Promise<Version> {
-    const project = await getOrCreateDefaultProject();
+    const project = await resolveProject(params.projectId);
 
     const latestVersion = await prisma.version.findFirst({
         where: {
@@ -52,6 +47,15 @@ export async function createVersionInDb(params: {
         },
     });
 
+    await prisma.project.update({
+        where: {
+            id: project.id,
+        },
+        data: {
+            updatedAt: new Date(),
+        },
+    });
+
     return {
         id: version.id,
         plan: JSON.parse(version.planJson),
@@ -61,8 +65,8 @@ export async function createVersionInDb(params: {
     };
 }
 
-export async function getVersionsFromDb(): Promise<Version[]> {
-    const project = await getOrCreateDefaultProject();
+export async function getVersionsFromDb(projectId?: number): Promise<Version[]> {
+    const project = await resolveProject(projectId);
 
     const versions = await prisma.version.findMany({
         where: {
@@ -82,7 +86,7 @@ export async function getVersionsFromDb(): Promise<Version[]> {
     }));
 }
 
-export async function getVersionFromDb(id: number): Promise<Version | null> {
+export async function getVersionFromDb(id: number, projectId?: number): Promise<Version | null> {
     const version = await prisma.version.findUnique({
         where: {
             id,
@@ -90,6 +94,10 @@ export async function getVersionFromDb(id: number): Promise<Version | null> {
     });
 
     if (!version) {
+        return null;
+    }
+
+    if (projectId && version.projectId !== projectId) {
         return null;
     }
 
