@@ -393,8 +393,10 @@ The component was generated as a client-side React component and may depend on U
                 style={{
                     flex: 1,
                     overflow: 'auto',
-                    padding: '20px',
+                    padding: '24px',
                     position: 'relative',
+                    background:
+                        'radial-gradient(circle at top left, rgba(99, 102, 241, 0.12), transparent 35%), #020617',
                 }}
             >
                 {mode === 'preview' ? (
@@ -413,14 +415,20 @@ The component was generated as a client-side React component and may depend on U
                     >
                         <div
                             style={{
-                                minHeight: '100%',
-                                background: themeConfig.theme === 'dark' ? '#1e293b' : '#ffffff',
+                                minHeight: 'calc(100vh - 150px)',
+                                width: '100%',
+                                maxWidth: '1280px',
+                                margin: '0 auto',
+                                background: themeConfig.theme === 'dark'
+                                    ? 'linear-gradient(135deg, #0f172a 0%, #111827 45%, #1e1b4b 100%)'
+                                    : '#ffffff',
                                 color: themeConfig.theme === 'dark' ? '#f8fafc' : '#0f172a',
                                 fontFamily: themeConfig.fontFamily,
-                                borderRadius: '12px',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                padding: '24px',
-                                boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+                                borderRadius: '18px',
+                                border: '1px solid rgba(255, 255, 255, 0.12)',
+                                padding: '32px',
+                                boxShadow: '0 24px 80px rgba(0, 0, 0, 0.35)',
+                                overflow: 'auto',
                                 '--primary': themeConfig.primaryColor,
                                 '--secondary': themeConfig.secondaryColor,
                             } as React.CSSProperties}
@@ -432,10 +440,12 @@ The component was generated as a client-side React component and may depend on U
 
                         <div
                             style={{
-                                position: 'absolute',
-                                bottom: '20px',
-                                left: '20px',
-                                right: '20px',
+                                position: 'sticky',
+                                bottom: '0px',
+                                marginTop: '16px',
+                                maxWidth: '1280px',
+                                marginLeft: 'auto',
+                                marginRight: 'auto',
                             }}
                         >
                             <LiveError
