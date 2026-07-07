@@ -234,6 +234,47 @@ export default function Home() {
     }
   };
 
+  const handleDeleteVersion = async (id: number) => {
+  if (!currentProject?.id) {
+    return;
+  }
+
+  const confirmed = window.confirm(`Delete version v${id}?`);
+
+  if (!confirmed) {
+    return;
+  }
+
+  const response = await fetch(`/api/versions/${id}?projectId=${currentProject.id}`, {
+    method: 'DELETE',
+  });
+
+  const result = await response.json();
+
+  if (!result.success) {
+    alert(result.error?.message || 'Failed to delete version');
+    return;
+  }
+
+  const remainingHistory = history.filter((item) => item.id !== id);
+  setHistory(remainingHistory);
+
+  if (version?.id === id) {
+    const latestVersion = remainingHistory[remainingHistory.length - 1];
+
+    if (latestVersion) {
+      setVersion(latestVersion);
+      setCode(latestVersion.code);
+    } else {
+      setVersion(null);
+      setCode(INITIAL_CODE);
+    }
+  }
+
+  fetchHistory(currentProject.id);
+  fetchProjects();
+};
+
   const handleRollback = async (id: number) => {
     try {
       const response = await fetch('/api/rollback', {
@@ -333,11 +374,12 @@ export default function Home() {
           </section>
 
           <HistorySidebar
-            history={history}
-            currentId={version?.id || null}
-            onRollback={handleRollback}
-            isOpen={isHistoryOpen}
-            onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
+             history={history}
+             currentId={version?.id || null}
+             onRollback={handleRollback}
+             onDeleteVersion={handleDeleteVersion}
+             isOpen={isHistoryOpen}
+             onToggle={() => setIsHistoryOpen(!isHistoryOpen)}
           />
         </div>
       </main>

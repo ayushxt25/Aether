@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { Version } from '@/types/plan';
-import { Clock, RotateCcw } from 'lucide-react';
+import { Clock, RotateCcw, Trash2 } from 'lucide-react';
 
 interface HistorySidebarProps {
     history: Version[];
     currentId: number | null;
     onRollback: (id: number) => void;
+    onDeleteVersion: (id: number) => void;
     isOpen: boolean;
     onToggle: () => void;
 }
@@ -16,8 +17,9 @@ export default function HistorySidebar({
     history,
     currentId,
     onRollback,
+    onDeleteVersion,
     isOpen,
-    onToggle
+    onToggle,
 }: HistorySidebarProps) {
     return (
         <aside
@@ -87,6 +89,7 @@ export default function HistorySidebar({
                     }}
                 >
                     <Clock size={18} color="#c084fc" />
+
                     <h2
                         style={{
                             margin: 0,
@@ -114,12 +117,10 @@ export default function HistorySidebar({
                         const isCurrent = currentId === version.id;
 
                         return (
-                            <button
+                            <div
                                 key={version.id}
-                                onClick={() => onRollback(version.id)}
                                 style={{
                                     width: '100%',
-                                    textAlign: 'left',
                                     padding: '16px',
                                     borderRadius: '12px',
                                     border: isCurrent
@@ -129,7 +130,6 @@ export default function HistorySidebar({
                                         ? 'rgba(168, 85, 247, 0.12)'
                                         : 'rgba(255, 255, 255, 0.04)',
                                     color: '#ffffff',
-                                    cursor: 'pointer',
                                     boxShadow: isCurrent
                                         ? '0 0 20px rgba(168, 85, 247, 0.15)'
                                         : 'none',
@@ -194,21 +194,52 @@ export default function HistorySidebar({
                                         marginTop: '12px',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        color: '#c084fc',
+                                        gap: '8px',
                                     }}
                                 >
-                                    <span
+                                    <button
+                                        type="button"
+                                        onClick={() => onRollback(version.id)}
                                         style={{
-                                            fontSize: '10px',
-                                            fontWeight: 600,
+                                            flex: 1,
+                                            border: '1px solid rgba(168, 85, 247, 0.2)',
+                                            background: 'rgba(168, 85, 247, 0.08)',
+                                            color: '#c084fc',
+                                            borderRadius: '8px',
+                                            padding: '8px 10px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '6px',
+                                            fontSize: '11px',
+                                            fontWeight: 700,
                                         }}
                                     >
-                                        Click to restore
-                                    </span>
-                                    <RotateCcw size={14} />
+                                        Restore
+                                        <RotateCcw size={13} />
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => onDeleteVersion(version.id)}
+                                        style={{
+                                            border: '1px solid rgba(248, 113, 113, 0.25)',
+                                            background: 'rgba(239, 68, 68, 0.08)',
+                                            color: '#fecaca',
+                                            borderRadius: '8px',
+                                            padding: '8px 10px',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
+                                        title="Delete version"
+                                    >
+                                        <Trash2 size={13} />
+                                    </button>
                                 </div>
-                            </button>
+                            </div>
                         );
                     })}
 
@@ -226,6 +257,7 @@ export default function HistorySidebar({
                                     marginBottom: '12px',
                                 }}
                             />
+
                             <p
                                 style={{
                                     margin: 0,
@@ -241,4 +273,4 @@ export default function HistorySidebar({
             </div>
         </aside>
     );
-}   
+}
