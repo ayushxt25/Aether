@@ -37,25 +37,40 @@ export default function Home() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(true);
 
   const fetchHistory = async () => {
-  try {
-    const res = await fetch('/api/history');
-    const result = await res.json();
+    try {
+        const res = await fetch('/api/history', {
+            cache: 'no-store',
+        });
 
-    if (!result.success) {
-      throw new Error(result.error?.message || 'Failed to fetch history');
+        const result = await res.json();
+
+        if (!result.success) {
+            throw new Error(result.error?.message || 'Failed to fetch history');
+        }
+
+        setHistory(result.data.history || []);
+    } catch (err) {
+        console.error('Failed to fetch history:', err);
+        setHistory([]);
     }
-
-    setHistory(result.data.history || []);
-  } catch (err) {
-    console.error('Failed to fetch history:', err);
-  }
 };
 
   const handleNewVersion = (v: Version) => {
-    setVersion(v);
-    setCode(v.code);
-    fetchHistory();
-  };
+  setVersion(v);
+  setCode(v.code);
+
+  setHistory((prev) => {
+    const alreadyExists = prev.some((item) => item.id === v.id);
+
+    if (alreadyExists) {
+      return prev.map((item) => item.id === v.id ? v : item);
+    }
+
+    return [...prev, v];
+  });
+
+  fetchHistory();
+};
 
   const handleRollback = async (id: number) => {
   try {
@@ -82,8 +97,35 @@ export default function Home() {
 };
 
   useEffect(() => {
-    fetchHistory();
-  }, []);
+  const loadHistory = async () => {
+    try {
+      const res = await fetch('/api/history', {
+        cache: 'no-store',
+      });
+
+      const result = await res.json();
+
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to fetch history');
+      }
+
+      const savedHistory = result.data.history || [];
+      setHistory(savedHistory);
+
+      const latestVersion = savedHistory[savedHistory.length - 1];
+
+      if (latestVersion) {
+        setVersion(latestVersion);
+        setCode(latestVersion.code);
+      }
+    } catch (err) {
+      console.error('Failed to fetch history:', err);
+      setHistory([]);
+    }
+  };
+
+  loadHistory();
+}, []);
 
   return (
    <AppStateProvider>

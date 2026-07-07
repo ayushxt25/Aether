@@ -241,4 +241,4 @@ export default function HistorySidebar({
             </div>
         </aside>
     );
-}
+}   
