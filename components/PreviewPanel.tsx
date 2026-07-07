@@ -6,18 +6,33 @@ import * as UI from './ui';
 import { useAppState, useDataFetch } from '@/lib/state/appState';
 import { MOCK_DATA } from '@/lib/mock/dataGenerator';
 import { ErrorBoundary } from './ErrorBoundary';
+import { Version } from '@/types/plan';
 
 interface PreviewPanelProps {
     code: string;
+    projectId?: number;
+    onManualVersionSaved?: (version: Version) => void;
 }
 
-export const PreviewPanel: React.FC<PreviewPanelProps> = ({ code }) => {
+export const PreviewPanel: React.FC<PreviewPanelProps> = ({
+    code,
+    projectId,
+    onManualVersionSaved,
+}) => {
     const { state } = useAppState();
     const { themeConfig } = state;
     const [mode, setMode] = React.useState<'preview' | 'code'>('preview');
     const [copied, setCopied] = React.useState(false);
+    const [editableCode, setEditableCode] = React.useState(code);
+    const [isSaving, setIsSaving] = React.useState(false);
 
-    const sanitizedCode = code.replace(/^import\s+.*?;?\s*$/gm, '').trim();
+    React.useEffect(() => {
+        setEditableCode(code);
+    }, [code]);
+
+    const sanitizeCode = (value: string) => value.replace(/^import\s+.*?;?\s*$/gm, '').trim();
+
+    const sanitizedCode = sanitizeCode(editableCode);
 
     const handleCopyCode = async () => {
         try {
@@ -57,6 +72,55 @@ export default GeneratedComponent;
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
+    };
+
+    const handleResetCode = () => {
+        setEditableCode(code);
+    };
+
+    const handleSaveManualVersion = async () => {
+        if (!projectId) {
+            alert('Select a project before saving code.');
+            return;
+        }
+
+        if (!sanitizedCode) {
+            alert('Code is empty.');
+            return;
+        }
+
+        setIsSaving(true);
+
+        try {
+            const response = await fetch('/api/versions/manual', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    projectId,
+                    code: sanitizedCode,
+                    explanation: 'Saved manual code edit from live editor.',
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                alert(result.error?.message || 'Failed to save manual version.');
+                return;
+            }
+
+            const savedVersion: Version = result.data.version;
+
+            onManualVersionSaved?.(savedVersion);
+            setMode('preview');
+        } catch (error) {
+            console.error('Failed to save manual version:', error);
+            alert('Failed to save manual version.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -108,8 +172,49 @@ export default GeneratedComponent;
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-end',
                     }}
                 >
+                    {mode === 'code' && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={handleResetCode}
+                                disabled={editableCode === code}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    background: 'rgba(255, 255, 255, 0.06)',
+                                    color: editableCode === code ? '#64748b' : '#e2e8f0',
+                                    fontSize: '12px',
+                                    cursor: editableCode === code ? 'not-allowed' : 'pointer',
+                                }}
+                            >
+                                Reset
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleSaveManualVersion}
+                                disabled={isSaving || !sanitizedCode || editableCode === code}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(34, 197, 94, 0.25)',
+                                    background: 'rgba(34, 197, 94, 0.12)',
+                                    color: isSaving ? '#86efac' : '#bbf7d0',
+                                    fontSize: '12px',
+                                    cursor: isSaving || !sanitizedCode || editableCode === code ? 'not-allowed' : 'pointer',
+                                    fontWeight: 700,
+                                }}
+                            >
+                                {isSaving ? 'Saving...' : 'Save Version'}
+                            </button>
+                        </>
+                    )}
+
                     <button
                         type="button"
                         onClick={handleCopyCode}
@@ -255,31 +360,46 @@ export default GeneratedComponent;
                             width: '100%',
                             height: '100%',
                             background: '#1e293b',
-                            padding: '20px',
                             borderRadius: '12px',
-                            overflow: 'auto',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
                         }}
                     >
-                        <pre
+                        <textarea
+                            value={editableCode}
+                            onChange={(event) => setEditableCode(event.target.value)}
+                            spellCheck={false}
                             style={{
-                                margin: 0,
-                                fontSize: '14px',
-                                fontFamily: '"Fira Code", monospace',
+                                flex: 1,
+                                width: '100%',
+                                minHeight: '520px',
+                                resize: 'none',
+                                border: 'none',
+                                outline: 'none',
+                                background: '#020617',
                                 color: '#e2e8f0',
-                                whiteSpace: 'pre-wrap',
+                                padding: '20px',
+                                fontSize: '13px',
+                                lineHeight: 1.7,
+                                fontFamily: '"Fira Code", "Cascadia Code", Consolas, monospace',
+                                whiteSpace: 'pre',
+                                overflow: 'auto',
                             }}
-                        >
-                            {sanitizedCode}
-                        </pre>
+                        />
 
                         <p
                             style={{
-                                marginTop: '20px',
+                                margin: 0,
+                                padding: '12px 16px',
                                 fontSize: '12px',
                                 color: '#94a3b8',
+                                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                                background: '#0f172a',
                             }}
                         >
-                            * Code is the executable React component generated for the preview. Use Copy Code or Download to reuse it.
+                            Edit the generated React arrow component here. Switch to Visual to preview changes, then Save Version to store it in history.
                         </p>
                     </div>
                 )}

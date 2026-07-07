@@ -431,7 +431,20 @@ const handleDuplicateVersion = async (id: number) => {
               overflow: 'hidden',
             }}
           >
-            <PreviewPanel code={code} />
+            <PreviewPanel
+              code={code}
+              projectId={currentProject?.id}
+              onManualVersionSaved={(savedVersion) => {
+                setVersion(savedVersion);
+                setCode(savedVersion.code);
+                setHistory((prev) => [...prev, savedVersion]);
+
+                if (currentProject?.id) {
+                  fetchHistory(currentProject.id);
+                  fetchProjects();
+                }
+              }}
+            />
           </section>
 
           <HistorySidebar
