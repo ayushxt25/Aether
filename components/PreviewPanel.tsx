@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import JSZip from 'jszip';
 import { LiveProvider, LiveError, LivePreview } from 'react-live';
 import * as UI from './ui';
 import { useAppState, useDataFetch } from '@/lib/state/appState';
@@ -25,6 +26,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     const [copied, setCopied] = React.useState(false);
     const [editableCode, setEditableCode] = React.useState(code);
     const [isSaving, setIsSaving] = React.useState(false);
+    const [isExporting, setIsExporting] = React.useState(false);
 
     React.useEffect(() => {
         setEditableCode(code);
@@ -33,6 +35,15 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     const sanitizeCode = (value: string) => value.replace(/^import\s+.*?;?\s*$/gm, '').trim();
 
     const sanitizedCode = sanitizeCode(editableCode);
+
+    const getComponentCode = () => `"use client";
+
+import React from 'react';
+
+const GeneratedComponent = ${sanitizedCode};
+
+export default GeneratedComponent;
+`;
 
     const handleCopyCode = async () => {
         try {
@@ -48,30 +59,97 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         }
     };
 
-    const handleDownloadCode = () => {
-        const componentCode = `"use client";
-
-import React from 'react';
-
-const GeneratedComponent = ${sanitizedCode};
-
-export default GeneratedComponent;
-`;
-
-        const blob = new Blob([componentCode], {
-            type: 'text/plain;charset=utf-8',
-        });
-
+    const downloadBlob = (blob: Blob, filename: string) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
 
         link.href = url;
-        link.download = 'GeneratedComponent.tsx';
+        link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
+    };
+
+    const handleDownloadCode = () => {
+        const blob = new Blob([getComponentCode()], {
+            type: 'text/plain;charset=utf-8',
+        });
+
+        downloadBlob(blob, 'GeneratedComponent.tsx');
+    };
+
+    const handleExportZip = async () => {
+        if (!sanitizedCode) {
+            alert('No code available to export.');
+            return;
+        }
+
+        setIsExporting(true);
+
+        try {
+            const zip = new JSZip();
+
+            zip.file('GeneratedComponent.tsx', getComponentCode());
+
+            zip.file('README.md', `# Aether Generated Component
+
+This package was exported from Aether, an AI-powered React UI generation workspace.
+
+## Files
+
+- \`GeneratedComponent.tsx\` - The generated React component.
+- \`package.json\` - Minimal dependency metadata.
+
+## Usage
+
+Import the component into your React or Next.js project:
+
+\`\`\`tsx
+import GeneratedComponent from './GeneratedComponent';
+
+export default function Page() {
+  return <GeneratedComponent />;
+}
+\`\`\`
+
+## Notes
+
+The component was generated as a client-side React component and may depend on UI primitives from the original Aether workspace if custom components were used.
+`);
+
+            zip.file('package.json', JSON.stringify({
+                name: 'aether-generated-component',
+                version: '1.0.0',
+                private: true,
+                type: 'module',
+                scripts: {
+                    dev: 'next dev',
+                    build: 'next build',
+                    start: 'next start',
+                },
+                dependencies: {
+                    '@types/react': 'latest',
+                    '@types/react-dom': 'latest',
+                    next: 'latest',
+                    react: 'latest',
+                    'react-dom': 'latest',
+                    typescript: 'latest',
+                },
+            }, null, 2));
+
+            const blob = await zip.generateAsync({
+                type: 'blob',
+            });
+
+            downloadBlob(blob, 'aether-generated-component.zip');
+        } catch (error) {
+            console.error('Failed to export ZIP:', error);
+            alert('Failed to export ZIP.');
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     const handleResetCode = () => {
@@ -247,6 +325,24 @@ export default GeneratedComponent;
                         }}
                     >
                         Download
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleExportZip}
+                        disabled={!sanitizedCode || isExporting}
+                        style={{
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            border: '1px solid rgba(59, 130, 246, 0.25)',
+                            background: 'rgba(59, 130, 246, 0.1)',
+                            color: isExporting ? '#93c5fd' : '#bfdbfe',
+                            fontSize: '12px',
+                            cursor: !sanitizedCode || isExporting ? 'not-allowed' : 'pointer',
+                            fontWeight: 700,
+                        }}
+                    >
+                        {isExporting ? 'Exporting...' : 'Export ZIP'}
                     </button>
 
                     <div
