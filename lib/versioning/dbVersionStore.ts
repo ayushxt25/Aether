@@ -16,6 +16,53 @@ async function resolveProject(projectId?: number) {
     return project;
 }
 
+function inferVersionSource(prompt: string | null) {
+    if (!prompt) {
+        return 'generated';
+    }
+
+    const normalizedPrompt = prompt.toLowerCase();
+
+    if (normalizedPrompt.includes('manual code edit')) {
+        return 'manual';
+    }
+
+    if (normalizedPrompt.includes('duplicated from')) {
+        return 'duplicate';
+    }
+
+    if (normalizedPrompt.includes('forked from')) {
+        return 'fork';
+    }
+
+    if (normalizedPrompt.includes('modify') || normalizedPrompt.includes('edit')) {
+        return 'modified';
+    }
+
+    return 'generated';
+}
+
+function mapDbVersionToVersion(version: {
+    id: number;
+    versionNo: number;
+    prompt: string | null;
+    planJson: string;
+    code: string;
+    explanation: string;
+    createdAt: Date;
+}): Version {
+    return {
+        id: version.id,
+        versionNo: version.versionNo,
+        prompt: version.prompt || '',
+        source: inferVersionSource(version.prompt),
+        plan: JSON.parse(version.planJson),
+        code: version.code,
+        explanation: version.explanation,
+        timestamp: version.createdAt.toISOString(),
+    };
+}
+
 export async function createVersionInDb(params: {
     plan: UIPlan;
     code: string;
@@ -56,13 +103,7 @@ export async function createVersionInDb(params: {
         },
     });
 
-    return {
-        id: version.id,
-        plan: JSON.parse(version.planJson),
-        code: version.code,
-        explanation: version.explanation,
-        timestamp: version.createdAt.toISOString(),
-    };
+    return mapDbVersionToVersion(version);
 }
 
 export async function getVersionsFromDb(projectId?: number): Promise<Version[]> {
@@ -77,13 +118,7 @@ export async function getVersionsFromDb(projectId?: number): Promise<Version[]> 
         },
     });
 
-    return versions.map((version) => ({
-        id: version.id,
-        plan: JSON.parse(version.planJson),
-        code: version.code,
-        explanation: version.explanation,
-        timestamp: version.createdAt.toISOString(),
-    }));
+    return versions.map(mapDbVersionToVersion);
 }
 
 export async function getVersionFromDb(id: number, projectId?: number): Promise<Version | null> {
@@ -101,11 +136,5 @@ export async function getVersionFromDb(id: number, projectId?: number): Promise<
         return null;
     }
 
-    return {
-        id: version.id,
-        plan: JSON.parse(version.planJson),
-        code: version.code,
-        explanation: version.explanation,
-        timestamp: version.createdAt.toISOString(),
-    };
+    return mapDbVersionToVersion(version);
 }

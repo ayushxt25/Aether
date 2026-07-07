@@ -7,6 +7,9 @@ export type UIPlan = z.infer<typeof UIPlanSchema> & { hash?: string };
 
 export interface Version {
     id: number;
+    versionNo?: number;
+    prompt?: string;
+    source?: string;
     plan: UIPlan;
     code: string;
     explanation: string;
