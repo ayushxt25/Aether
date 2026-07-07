@@ -10,6 +10,8 @@ import { AppStateProvider } from '@/lib/state/appState';
 import { Version } from '@/types/plan';
 import { Project } from '@/types/project';
 
+const CURRENT_PROJECT_STORAGE_KEY = 'aether_current_project_id';
+
 const INITIAL_CODE = `
 () => {
   return (
@@ -41,7 +43,10 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
-  const fetchHistory = useCallback(async (projectId?: number) => {
+  const fetchHistory = useCallback(async (
+    projectId?: number,
+    options?: { loadLatest?: boolean }
+  ) => {
     try {
       const query = projectId ? `?projectId=${projectId}` : '';
 
@@ -55,7 +60,20 @@ export default function Home() {
         throw new Error(result.error?.message || 'Failed to fetch history');
       }
 
-      setHistory(result.data.history || []);
+      const loadedHistory: Version[] = result.data.history || [];
+      setHistory(loadedHistory);
+
+      if (options?.loadLatest) {
+        const latestVersion = loadedHistory[loadedHistory.length - 1];
+
+        if (latestVersion) {
+          setVersion(latestVersion);
+          setCode(latestVersion.code);
+        } else {
+          setVersion(null);
+          setCode(INITIAL_CODE);
+        }
+      }
     } catch (err) {
       console.error('Failed to fetch history:', err);
       setHistory([]);
@@ -78,10 +96,16 @@ export default function Home() {
       setProjects(loadedProjects);
 
       if (!currentProject && loadedProjects.length > 0) {
-        const firstProject = loadedProjects[0];
+        const savedProjectId = Number(window.localStorage.getItem(CURRENT_PROJECT_STORAGE_KEY));
 
-        setCurrentProject(firstProject);
-        await fetchHistory(firstProject.id);
+        const savedProject = loadedProjects.find((project) => project.id === savedProjectId);
+        const fallbackProject = loadedProjects[0];
+        const projectToOpen = savedProject || fallbackProject;
+
+        setCurrentProject(projectToOpen);
+        window.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, String(projectToOpen.id));
+
+        await fetchHistory(projectToOpen.id, { loadLatest: true });
       }
     } catch (err) {
       console.error('Failed to fetch projects:', err);
@@ -109,6 +133,8 @@ export default function Home() {
 
     setProjects((prev) => [project, ...prev]);
     setCurrentProject(project);
+    window.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, String(project.id));
+
     setVersion(null);
     setCode(INITIAL_CODE);
     setHistory([]);
@@ -160,22 +186,31 @@ export default function Home() {
     const nextProject = remainingProjects[0] || null;
 
     setCurrentProject(nextProject);
+
+    if (nextProject) {
+      window.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, String(nextProject.id));
+    } else {
+      window.localStorage.removeItem(CURRENT_PROJECT_STORAGE_KEY);
+    }
+
     setVersion(null);
     setCode(INITIAL_CODE);
 
     if (nextProject) {
-      await fetchHistory(nextProject.id);
+      await fetchHistory(nextProject.id, { loadLatest: true });
     } else {
       setHistory([]);
     }
   };
 
   const handleSelectProject = async (project: Project) => {
+    window.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, String(project.id));
+
     setCurrentProject(project);
     setVersion(null);
     setCode(INITIAL_CODE);
 
-    await fetchHistory(project.id);
+    await fetchHistory(project.id, { loadLatest: true });
   };
 
   const handleNewVersion = (v: Version) => {
@@ -193,6 +228,7 @@ export default function Home() {
     });
 
     if (currentProject?.id) {
+      window.localStorage.setItem(CURRENT_PROJECT_STORAGE_KEY, String(currentProject.id));
       fetchHistory(currentProject.id);
       fetchProjects();
     }
