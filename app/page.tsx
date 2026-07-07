@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChatPanel } from '@/components/ChatPanel';
 import { PreviewPanel } from '@/components/PreviewPanel';
 import HistorySidebar from '@/components/HistorySidebar';
@@ -41,7 +41,7 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
 
-  const fetchHistory = async (projectId?: number) => {
+  const fetchHistory = useCallback(async (projectId?: number) => {
     try {
       const query = projectId ? `?projectId=${projectId}` : '';
 
@@ -60,9 +60,9 @@ export default function Home() {
       console.error('Failed to fetch history:', err);
       setHistory([]);
     }
-  };
+  }, []);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const res = await fetch('/api/projects', {
         cache: 'no-store',
@@ -86,7 +86,7 @@ export default function Home() {
     } catch (err) {
       console.error('Failed to fetch projects:', err);
     }
-  };
+  }, [currentProject, fetchHistory]);
 
   const handleCreateProject = async (name: string) => {
     const res = await fetch('/api/projects', {
@@ -176,7 +176,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   return (
     <AppStateProvider>
