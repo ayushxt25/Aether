@@ -1,57 +1,28 @@
-"use client";
-
 import React from 'react';
 
 interface GridProps {
-    columns?: number | string;
-    gap?: string | number;
-    children?: React.ReactNode;
-    style?: React.CSSProperties;
+    children: React.ReactNode;
+    columns?: number;
+    gap?: string;
     minColumnWidth?: string;
 }
 
-function normalizeColumns(columns?: number | string): number {
-    const numericColumns = Number(columns);
-
-    if (!Number.isFinite(numericColumns)) {
-        return 3;
-    }
-
-    return Math.max(1, Math.min(6, Math.floor(numericColumns)));
-}
-
-function normalizeGap(gap?: string | number): string {
-    if (gap === null || gap === undefined) {
-        return '20px';
-    }
-
-    if (typeof gap === 'number') {
-        return `${gap}px`;
-    }
-
-    return gap;
-}
-
 export const Grid: React.FC<GridProps> = ({
-    columns = 3,
-    gap = '20px',
     children,
-    style,
-    minColumnWidth
+    columns = 3,
+    gap = '16px',
+    minColumnWidth = '240px',
 }) => {
-    const safeColumns = normalizeColumns(columns);
-    const safeGap = normalizeGap(gap);
+    const safeColumns = Math.max(1, columns);
 
     return (
         <div
             style={{
                 display: 'grid',
-                gridTemplateColumns: minColumnWidth
-                    ? `repeat(auto-fit, minmax(${minColumnWidth}, 1fr))`
-                    : `repeat(${safeColumns}, minmax(0, 1fr))`,
-                gap: safeGap,
+                gridTemplateColumns: `repeat(${safeColumns}, minmax(${minColumnWidth}, 1fr))`,
+                gap,
                 width: '100%',
-                ...style
+                alignItems: 'stretch',
             }}
         >
             {children}
