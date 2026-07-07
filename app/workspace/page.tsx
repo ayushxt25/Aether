@@ -1,5 +1,6 @@
   "use client";
 
+  import { UserButton } from '@clerk/nextjs';
   import { PromptRunsView } from '@/components/PromptRunsView';
   import { PromptRun } from '@/types/run';
   import React, { useState, useEffect, useCallback } from 'react';
@@ -11,6 +12,7 @@
   import { AppStateProvider } from '@/lib/state/appState';
   import { Version } from '@/types/plan';
   import { Project } from '@/types/project';
+  
 
   const CURRENT_PROJECT_STORAGE_KEY = 'aether_current_project_id';
 
@@ -504,17 +506,33 @@
   }, [fetchProjects, fetchRuns]);
 
     return (
-      <AppStateProvider>
-        <main
-          style={{
-            display: 'flex',
-            width: '100vw',
-            height: '100vh',
-            overflow: 'hidden',
-            background: '#050505',
-            color: '#ffffff',
-          }}
-        >
+  <AppStateProvider>
+    <main
+      style={{
+        display: 'flex',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        background: '#050505',
+        color: '#ffffff',
+      }}
+    >
+      <div
+        style={{
+          position: 'fixed',
+          top: '18px',
+          right: '18px',
+          zIndex: 200,
+          padding: '8px',
+          borderRadius: '999px',
+          background: 'rgba(15, 23, 42, 0.86)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          backdropFilter: 'blur(14px)',
+          boxShadow: '0 14px 40px rgba(0, 0, 0, 0.35)',
+        }}
+      >
+        <UserButton />
+      </div>
           <div
             style={{
               position: 'fixed',

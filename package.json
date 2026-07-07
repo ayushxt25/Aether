@@ -10,6 +10,7 @@
     "test:stress": "tsx scripts/stress_test.ts"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.5.13",
     "@google/genai": "^1.43.0",
     "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/client": "^7.8.0",

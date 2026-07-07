@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';
 
 const features = [
   {
@@ -47,7 +49,9 @@ const metrics = [
   ['AI Score', '91%'],
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const { userId } = await auth();
+
   return (
     <main className="landing-shell">
       <div className="landing-glow" />
@@ -59,19 +63,38 @@ export default function LandingPage() {
         </Link>
 
         <div className="nav-actions">
-          <a
-            href="https://github.com/ayushxt25/Aether"
-            target="_blank"
-            rel="noreferrer"
-            className="nav-link"
-          >
-            GitHub
-          </a>
+  <a
+    href="https://github.com/ayushxt25/Aether"
+    target="_blank"
+    rel="noreferrer"
+    className="nav-link"
+  >
+    GitHub
+  </a>
 
-          <Link href="/workspace" className="primary-link">
-            Open Workspace
-          </Link>
-        </div>
+  {userId ? (
+    <>
+      <Link href="/workspace" className="primary-link">
+        Open Workspace
+      </Link>
+      <UserButton />
+    </>
+  ) : (
+    <>
+      <SignInButton mode="modal">
+        <button type="button" className="nav-link">
+          Sign In
+        </button>
+      </SignInButton>
+
+      <SignUpButton mode="modal">
+        <button type="button" className="primary-link">
+          Sign Up
+        </button>
+      </SignUpButton>
+    </>
+  )}
+</div>
       </nav>
 
       <section className="hero-section">
