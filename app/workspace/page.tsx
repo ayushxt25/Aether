@@ -1,6 +1,7 @@
   "use client";
 
   import { UserButton } from '@clerk/nextjs';
+  import { parseApiResponse } from '@/lib/client/apiClient';
   import { PromptRunsView } from '@/components/PromptRunsView';
   import { PromptRun } from '@/types/run';
   import React, { useState, useEffect, useCallback } from 'react';
@@ -61,13 +62,14 @@
           cache: 'no-store',
         });
 
-        const result = await res.json();
+        const result = await parseApiResponse<{
+  success: true;
+  data: {
+    history: Version[];
+  };
+}>(res);
 
-        if (!result.success) {
-          throw new Error(result.error?.message || 'Failed to fetch history');
-        }
-
-        const loadedHistory: Version[] = result.data.history || [];
+const loadedHistory: Version[] = result.data.history || [];
         setHistory(loadedHistory);
 
         if (options?.loadLatest) {
@@ -93,13 +95,14 @@
           cache: 'no-store',
         });
 
-        const result = await res.json();
+        const result = await parseApiResponse<{
+  success: true;
+  data: {
+    projects: Project[];
+  };
+}>(res);
 
-        if (!result.success) {
-          throw new Error(result.error?.message || 'Failed to fetch projects');
-        }
-
-        const loadedProjects: Project[] = result.data.projects || [];
+const loadedProjects: Project[] = result.data.projects || [];
         setProjects(loadedProjects);
 
         if (!currentProject && loadedProjects.length > 0) {
@@ -127,13 +130,14 @@
         cache: 'no-store',
       });
 
-      const result = await res.json();
+      const result = await parseApiResponse<{
+  success: true;
+  data: {
+    runs: PromptRun[];
+  };
+}>(res);
 
-      if (!result.success) {
-        throw new Error(result.error?.message || 'Failed to fetch prompt runs');
-      }
-
-      setRuns(result.data.runs || []);
+setRuns(result.data.runs || []);
     } catch (error) {
       console.error('Failed to fetch prompt runs:', error);
       setRuns([]);
@@ -153,13 +157,14 @@
         }),
       });
 
-      const result = await res.json();
+      const result = await parseApiResponse<{
+  success: true;
+  data: {
+    project: Project;
+  };
+}>(res);
 
-      if (!result.success) {
-        throw new Error(result.error?.message || 'Failed to create project');
-      }
-
-      const project: Project = result.data.project;
+const project: Project = result.data.project;
 
       setProjects((prev) => [project, ...prev]);
       setCurrentProject(project);
@@ -181,14 +186,14 @@
         }),
       });
 
-      const result = await res.json();
+      const result = await parseApiResponse<{
+  success: true;
+  data: {
+    project: Project;
+  };
+}>(res);
 
-      if (!result.success) {
-        throw new Error(result.error?.message || 'Failed to rename project');
-      }
-
-      const updatedProject: Project = result.data.project;
-
+const updatedProject: Project = result.data.project;
       setProjects((prev) =>
         prev.map((project) => project.id === projectId ? updatedProject : project)
       );
@@ -232,12 +237,15 @@
       method: 'POST',
     });
 
-    const result = await response.json();
-
-    if (!result.success) {
-      alert(result.error?.message || 'Failed to duplicate run');
-      return;
-    }
+    try {
+  await parseApiResponse<{
+    success: true;
+    data: unknown;
+  }>(response);
+} catch (error) {
+  alert(error instanceof Error ? error.message : 'Failed to duplicate run');
+  return;
+}
 
     await fetchRuns();
 
@@ -259,12 +267,15 @@
       }),
     });
 
-    const result = await response.json();
-
-    if (!result.success) {
-      alert(result.error?.message || 'Failed to fork run');
-      return;
-    }
+    try {
+  await parseApiResponse<{
+    success: true;
+    data: unknown;
+  }>(response);
+} catch (error) {
+  alert(error instanceof Error ? error.message : 'Failed to fork run');
+  return;
+}
 
     await fetchProjects();
     await fetchRuns();
@@ -281,12 +292,15 @@
       method: 'DELETE',
     });
 
-    const result = await response.json();
-
-    if (!result.success) {
-      alert(result.error?.message || 'Failed to delete run');
-      return;
-    }
+    try {
+  await parseApiResponse<{
+    success: true;
+    data: unknown;
+  }>(response);
+} catch (error) {
+  alert(error instanceof Error ? error.message : 'Failed to delete run');
+  return;
+}
 
     setRuns((prev) => prev.filter((item) => item.versionId !== run.versionId));
 
@@ -305,11 +319,10 @@
         method: 'DELETE',
       });
 
-      const result = await res.json();
-
-      if (!result.success) {
-        throw new Error(result.error?.message || 'Failed to delete project');
-      }
+      await parseApiResponse<{
+  success: true;
+  data: unknown;
+}>(res);
 
       const remainingProjects = projects.filter((project) => project.id !== projectId);
 
@@ -379,15 +392,29 @@
       }),
     });
 
-    const result = await response.json();
+   let result: {
+  success: true;
+  data: {
+    project: Project;
+    version: Version;
+  };
+};
 
-    if (!result.success) {
-      alert(result.error?.message || 'Failed to fork version');
-      return;
-    }
+try {
+  result = await parseApiResponse<{
+    success: true;
+    data: {
+      project: Project;
+      version: Version;
+    };
+  }>(response);
+} catch (error) {
+  alert(error instanceof Error ? error.message : 'Failed to fork version');
+  return;
+}
 
-    const forkedProject: Project = result.data.project;
-    const forkedVersion: Version = result.data.version;
+const forkedProject: Project = result.data.project;
+const forkedVersion: Version = result.data.version;
 
     setProjects((prev) => [forkedProject, ...prev]);
     setCurrentProject(forkedProject);
@@ -415,12 +442,15 @@
       method: 'DELETE',
     });
 
-    const result = await response.json();
-
-    if (!result.success) {
-      alert(result.error?.message || 'Failed to delete version');
-      return;
-    }
+    try {
+  await parseApiResponse<{
+    success: true;
+    data: unknown;
+  }>(response);
+} catch (error) {
+  alert(error instanceof Error ? error.message : 'Failed to delete version');
+  return;
+}
 
     const remainingHistory = history.filter((item) => item.id !== id);
     setHistory(remainingHistory);
@@ -450,14 +480,26 @@
       method: 'POST',
     });
 
-    const result = await response.json();
+   let result: {
+  success: true;
+  data: {
+    version: Version;
+  };
+};
 
-    if (!result.success) {
-      alert(result.error?.message || 'Failed to duplicate version');
-      return;
-    }
+try {
+  result = await parseApiResponse<{
+    success: true;
+    data: {
+      version: Version;
+    };
+  }>(response);
+} catch (error) {
+  alert(error instanceof Error ? error.message : 'Failed to duplicate version');
+  return;
+}
 
-    const duplicatedVersion: Version = result.data.version;
+const duplicatedVersion: Version = result.data.version;
 
     setVersion(duplicatedVersion);
     setCode(duplicatedVersion.code);
@@ -481,13 +523,14 @@
           }),
         });
 
-        const result = await response.json();
+        const result = await parseApiResponse<{
+  success: true;
+  data: {
+    version: Version;
+  };
+}>(response);
 
-        if (!result.success) {
-          throw new Error(result.error?.message || 'Rollback failed');
-        }
-
-        const restoredVersion = result.data.version;
+const restoredVersion = result.data.version;
 
         setVersion(restoredVersion);
         setCode(restoredVersion.code);
