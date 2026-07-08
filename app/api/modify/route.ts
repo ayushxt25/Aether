@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { runEditor } from '@/lib/agents/editor';
 import { runGenerator } from '@/lib/agents/generator';
 import { runExplainer } from '@/lib/agents/explainer';
@@ -11,92 +12,95 @@ import { errorResponse, getErrorMessage, successResponse } from '@/lib/server/ap
 import { z } from 'zod';
 
 const ModifyRequestSchema = z.object({
-    intent: z.string().min(1, 'Intent is required'),
-    versionId: z.number().int().positive('Version ID must be a positive integer'),
-    projectId: z.number().int().positive('Project ID must be a positive integer').optional(),
+  intent: z.string().min(1, 'Intent is required'),
+  versionId: z.number().int().positive('Version ID must be a positive integer'),
+  projectId: z.number().int().positive('Project ID must be a positive integer').optional(),
 });
 
 export async function POST(req: NextRequest) {
-    try {
-        const body = await req.json().catch(() => ({}));
-        const parseResult = ModifyRequestSchema.safeParse(body);
+  try {
+    const { userId } = await auth();
 
-        if (!parseResult.success) {
-            return errorResponse(
-                'VALIDATION_ERROR',
-                parseResult.error.issues[0]?.message ?? 'Invalid request',
-                400
-            );
-        }
-
-        const { intent, versionId, projectId } = parseResult.data;
-
-        const safety = checkPromptSafety(intent);
-
-        if (!safety.safe) {
-            return errorResponse(
-                'BAD_REQUEST',
-                safety.reason || 'Prompt failed safety checks.',
-                403
-            );
-        }
-
-        const existingVersion = await getVersionFromDb(versionId, projectId);
-
-        if (!existingVersion) {
-            return errorResponse(
-                'VERSION_NOT_FOUND',
-                'Version not found.',
-                404
-            );
-        }
-
-        const newPlan = await runEditor(intent, existingVersion.plan);
-
-        let code = await runGenerator(newPlan, existingVersion.code);
-        let retries = 0;
-        let isStable = false;
-        const maxRetries = 5;
-
-        while (retries < maxRetries && !isStable) {
-            const validationResult = validateGeneratedCode(code);
-
-            if (validationResult.success) {
-                isStable = true;
-            } else {
-                console.warn(`[Pipeline] Modification Self-Healing Attempt ${retries + 1}: ${validationResult.error}`);
-                code = await runFixer(code, validationResult.error || 'Unknown error', retries);
-                retries++;
-            }
-        }
-
-        if (!isStable) {
-            return errorResponse(
-                'AI_PROVIDER_ERROR',
-                `Unable to modify into a stable UI after ${maxRetries} self-healing attempts. Please reformulate.`,
-                422
-            );
-        }
-
-        const explanation = await runExplainer(intent, newPlan);
-
-        const version = await createVersionInDb({
-            plan: newPlan,
-            code,
-            explanation,
-            prompt: intent,
-            projectId,
-        });
-
-        return successResponse(version);
-    } catch (error: unknown) {
-        const message = getErrorMessage(error);
-        console.error('[API /modify] Modification Error:', error);
-
-        return errorResponse(
-            'INTERNAL_ERROR',
-            message,
-            500
-        );
+    if (!userId) {
+      return errorResponse('UNAUTHORIZED', 'You must be signed in to modify UIs.', 401);
     }
+
+    const body = await req.json().catch(() => ({}));
+    const parseResult = ModifyRequestSchema.safeParse(body);
+
+    if (!parseResult.success) {
+      return errorResponse(
+        'VALIDATION_ERROR',
+        parseResult.error.issues[0]?.message ?? 'Invalid request',
+        400
+      );
+    }
+
+    const { intent, versionId, projectId } = parseResult.data;
+
+    const safety = checkPromptSafety(intent);
+
+    if (!safety.safe) {
+      return errorResponse(
+        'BAD_REQUEST',
+        safety.reason || 'Prompt failed safety checks.',
+        403
+      );
+    }
+
+    const existingVersion = await getVersionFromDb(userId, versionId, projectId);
+
+    if (!existingVersion) {
+      return errorResponse(
+        'VERSION_NOT_FOUND',
+        'Version not found.',
+        404
+      );
+    }
+
+    const newPlan = await runEditor(intent, existingVersion.plan);
+
+    let code = await runGenerator(newPlan, existingVersion.code);
+    let retries = 0;
+    let isStable = false;
+    const maxRetries = 5;
+
+    while (retries < maxRetries && !isStable) {
+      const validationResult = validateGeneratedCode(code);
+
+      if (validationResult.success) {
+        isStable = true;
+      } else {
+        console.warn(`[Pipeline] Modification Self-Healing Attempt ${retries + 1}: ${validationResult.error}`);
+        code = await runFixer(code, validationResult.error || 'Unknown error', retries);
+        retries++;
+      }
+    }
+
+    if (!isStable) {
+      return errorResponse(
+        'AI_PROVIDER_ERROR',
+        `Unable to modify into a stable UI after ${maxRetries} self-healing attempts. Please reformulate.`,
+        422
+      );
+    }
+
+    const explanation = await runExplainer(intent, newPlan);
+
+    const version = await createVersionInDb({
+      userId,
+      plan: newPlan,
+      code,
+      explanation,
+      prompt: intent,
+      projectId,
+    });
+
+    return successResponse(version);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error('[API /modify] Modification Error:', error);
+
+    return errorResponse('INTERNAL_ERROR', message, 500);
+  }
 }

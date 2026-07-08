@@ -1,55 +1,63 @@
 import { prisma } from '@/lib/db/prisma';
 
-export async function getProjectsFromDb() {
-    return prisma.project.findMany({
-        orderBy: {
-            updatedAt: 'desc',
+export async function getProjectsFromDb(userId: string) {
+  return prisma.project.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      updatedAt: 'desc',
+    },
+    include: {
+      _count: {
+        select: {
+          versions: true,
         },
-        include: {
-            _count: {
-                select: {
-                    versions: true,
-                },
-            },
-        },
-    });
+      },
+    },
+  });
 }
 
 export async function createProjectInDb(params: {
-    name: string;
-    description?: string;
+  userId: string;
+  name: string;
+  description?: string;
 }) {
-    return prisma.project.create({
-        data: {
-            name: params.name,
-            description: params.description || null,
-        },
-    });
+  return prisma.project.create({
+    data: {
+      userId: params.userId,
+      name: params.name,
+      description: params.description || null,
+    },
+  });
 }
 
-export async function getOrCreateDefaultProject() {
-    const existingProject = await prisma.project.findFirst({
-        where: {
-            name: 'Default Aether Project',
-        },
-    });
+export async function getOrCreateDefaultProject(userId: string) {
+  const existingProject = await prisma.project.findFirst({
+    where: {
+      userId,
+      name: 'Default Aether Project',
+    },
+  });
 
-    if (existingProject) {
-        return existingProject;
-    }
+  if (existingProject) {
+    return existingProject;
+  }
 
-    return prisma.project.create({
-        data: {
-            name: 'Default Aether Project',
-            description: 'Default local project workspace for generated Aether UI versions.',
-        },
-    });
+  return prisma.project.create({
+    data: {
+      userId,
+      name: 'Default Aether Project',
+      description: 'Default local project workspace for generated Aether UI versions.',
+    },
+  });
 }
 
-export async function getProjectById(id: number) {
-    return prisma.project.findUnique({
-        where: {
-            id,
-        },
-    });
+export async function getProjectById(id: number, userId: string) {
+  return prisma.project.findFirst({
+    where: {
+      id,
+      userId,
+    },
+  });
 }
