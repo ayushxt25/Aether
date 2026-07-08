@@ -577,59 +577,83 @@ const restoredVersion = result.data.version;
         <UserButton />
       </div>
           <div
-            style={{
-              position: 'fixed',
-              bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 100,
-              display: 'flex',
-              gap: '6px',
-              padding: '6px',
-              borderRadius: '999px',
-              background: 'rgba(15, 23, 42, 0.92)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              backdropFilter: 'blur(16px)',
-              boxShadow: '0 18px 60px rgba(0, 0, 0, 0.45)',
+  style={{
+    position: 'fixed',
+    bottom: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 100,
+    display: 'flex',
+    gap: '4px',
+    padding: '6px',
+    borderRadius: '999px',
+    background: 'rgba(15, 23, 42, 0.92)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    backdropFilter: 'blur(18px)',
+    boxShadow: '0 18px 60px rgba(0, 0, 0, 0.45)',
+    overflow: 'hidden',
   }}
-          >
-            <button
-              type="button"
-              onClick={() => setActiveView('workspace')}
-              style={{
-                border: 'none',
-                borderRadius: '999px',
-                padding: '8px 14px',
-                background: activeView === 'workspace' ? 'rgba(168, 85, 247, 0.95)' : 'transparent',
-                color: activeView === 'workspace' ? '#ffffff' : '#94a3b8',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-              }}
-            >
-              Workspace
-            </button>
+>
+  <div
+    style={{
+      position: 'absolute',
+      top: '6px',
+      bottom: '6px',
+      left: activeView === 'workspace' ? '6px' : '112px',
+      width: activeView === 'workspace' ? '102px' : '116px',
+      borderRadius: '999px',
+      background: 'linear-gradient(135deg, #a855f7, #6366f1)',
+      boxShadow: '0 10px 28px rgba(99, 102, 241, 0.36)',
+      transition: 'left 220ms ease, width 220ms ease',
+      zIndex: 0,
+    }}
+  />
 
-            <button
-              type="button"
-              onClick={() => {
-                setActiveView('runs');
-                fetchRuns();
-              }}
-              style={{
-                border: 'none',
-                borderRadius: '999px',
-                padding: '8px 14px',
-                background: activeView === 'runs' ? 'rgba(168, 85, 247, 0.95)' : 'transparent',
-                color: activeView === 'runs' ? '#ffffff' : '#94a3b8',
-                fontSize: '13px',
-                fontWeight: 800,
-                cursor: 'pointer',
-              }}
-            >
-              Prompt Runs
-            </button>
-          </div>
+  <button
+    type="button"
+    onClick={() => setActiveView('workspace')}
+    style={{
+      position: 'relative',
+      zIndex: 1,
+      border: 'none',
+      borderRadius: '999px',
+      padding: '8px 14px',
+      width: '102px',
+      background: 'transparent',
+      color: activeView === 'workspace' ? '#ffffff' : '#94a3b8',
+      fontSize: '13px',
+      fontWeight: 850,
+      cursor: 'pointer',
+      transition: 'color 180ms ease, transform 180ms ease',
+    }}
+  >
+    Workspace
+  </button>
+
+  <button
+    type="button"
+    onClick={() => {
+      setActiveView('runs');
+      fetchRuns();
+    }}
+    style={{
+      position: 'relative',
+      zIndex: 1,
+      border: 'none',
+      borderRadius: '999px',
+      padding: '8px 14px',
+      width: '116px',
+      background: 'transparent',
+      color: activeView === 'runs' ? '#ffffff' : '#94a3b8',
+      fontSize: '13px',
+      fontWeight: 850,
+      cursor: 'pointer',
+      transition: 'color 180ms ease, transform 180ms ease',
+    }}
+  >
+    Prompt Runs
+  </button>
+</div>
 
           {activeView === 'workspace' ? (
             <div
