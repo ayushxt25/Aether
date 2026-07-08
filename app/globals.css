@@ -623,3 +623,24 @@ a {
     padding: 26px;
   }
 }
+@keyframes chatMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.spin-slow {
+  animation: spinSlow 900ms linear infinite;
+}
+
+@keyframes spinSlow {
+  to {
+    transform: rotate(360deg);
+  }
+}
