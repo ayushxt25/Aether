@@ -139,6 +139,7 @@ export function PromptRunsView({
                         fontSize: '13px',
                         fontWeight: 700,
                         cursor: 'pointer',
+                        marginRight: '56px',
                     }}
                 >
                     Refresh
