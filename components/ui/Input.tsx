@@ -65,23 +65,27 @@ export const Input: React.FC<InputProps> = ({
             )}
 
             <input
-                type={type}
-                placeholder={placeholder}
-                style={inputStyle}
-                {...props}
-                onFocus={(e) => {
-                    e.currentTarget.style.border = '1px solid #6366f1';
-                    e.currentTarget.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
-                    onFocus?.(e);
-                }}
-                onBlur={(e) => {
-                    e.currentTarget.style.border = error
-                        ? '1px solid rgba(248, 113, 113, 0.7)'
-                        : '1px solid rgba(255, 255, 255, 0.2)';
-                    e.currentTarget.style.boxShadow = 'none';
-                    onBlur?.(e);
-                }}
-            />
+  type={type}
+  placeholder={placeholder}
+  style={inputStyle}
+  {...props}
+  readOnly={
+    props.readOnly ??
+    (props.value !== undefined && props.onChange === undefined)
+  }
+  onFocus={(e) => {
+    e.currentTarget.style.border = '1px solid #6366f1';
+    e.currentTarget.style.boxShadow = '0 0 0 2px rgba(99, 102, 241, 0.2)';
+    onFocus?.(e);
+  }}
+  onBlur={(e) => {
+    e.currentTarget.style.border = error
+      ? '1px solid rgba(248, 113, 113, 0.7)'
+      : '1px solid rgba(255, 255, 255, 0.2)';
+    e.currentTarget.style.boxShadow = 'none';
+    onBlur?.(e);
+  }}
+/>
 
             {error && (
                 <span
