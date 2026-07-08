@@ -18,26 +18,183 @@
   const CURRENT_PROJECT_STORAGE_KEY = 'aether_current_project_id';
 
   const INITIAL_CODE = `
-  () => {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <Navbar title="Welcome to AI UI Architect" />
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <Sidebar>
-            <Button label="Dashboard" variant="primary" onClick={() => alert('Dashboard Clicked')} />
-            <Button label="Settings" variant="secondary" onClick={() => alert('Settings Clicked')} />
-          </Sidebar>
-          <Card title="Get Started">
-            <p style={{ color: '#94a3b8', marginBottom: '16px' }}>
-              Describe what you want to build in the chat panel to the left.
-            </p>
-            <Button label="Learn More" variant="primary" onClick={() => alert('Learning More...')} />
-          </Card>
+() => {
+  const quickPrompts = [
+    'AI finance dashboard',
+    'SaaS landing page',
+    'Admin analytics panel',
+    'Startup CRM workspace'
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: '100%',
+        padding: '36px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background:
+          'radial-gradient(circle at top left, rgba(168, 85, 247, 0.18), transparent 32%), radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.12), transparent 34%), #050711',
+        color: '#ffffff',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '980px',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1.1fr) minmax(280px, 0.9fr)',
+          gap: '22px',
+          alignItems: 'stretch',
+        }}
+      >
+        <div
+          style={{
+            padding: '34px',
+            borderRadius: '28px',
+            background: 'rgba(15, 23, 42, 0.82)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 28px 90px rgba(0, 0, 0, 0.36)',
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              padding: '7px 11px',
+              borderRadius: '999px',
+              background: 'rgba(168, 85, 247, 0.14)',
+              border: '1px solid rgba(168, 85, 247, 0.24)',
+              color: '#d8b4fe',
+              fontSize: '12px',
+              fontWeight: 800,
+              marginBottom: '18px',
+            }}
+          >
+            Aether Workspace
+          </div>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '46px',
+              lineHeight: 1,
+              letterSpacing: '-0.06em',
+              color: '#ffffff',
+            }}
+          >
+            Generate your first polished React interface.
+          </h1>
+
+          <p
+            style={{
+              margin: '18px 0 0',
+              color: '#94a3b8',
+              fontSize: '15px',
+              lineHeight: 1.8,
+              maxWidth: '620px',
+            }}
+          >
+            Create a project, describe the UI you want, preview the generated
+            component, edit the code, track every version, and export the final
+            result as a reusable React component.
+          </p>
+
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '10px',
+              marginTop: '24px',
+            }}
+          >
+            {quickPrompts.map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => alert('Try this prompt in the chat: ' + prompt)}
+                style={{
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'rgba(255, 255, 255, 0.055)',
+                  color: '#e2e8f0',
+                  borderRadius: '999px',
+                  padding: '9px 12px',
+                  fontSize: '12px',
+                  fontWeight: 750,
+                  cursor: 'pointer',
+                }}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gap: '14px',
+          }}
+        >
+          {[
+            ['1', 'Create a project', 'Keep related UI generations organized.'],
+            ['2', 'Describe the interface', 'Use natural language prompts to generate React UIs.'],
+            ['3', 'Edit and version', 'Modify, duplicate, fork, restore, or manually save code.'],
+            ['4', 'Export component', 'Download the final UI as code or a ZIP package.']
+          ].map(([step, title, text]) => (
+            <div
+              key={step}
+              style={{
+                padding: '18px',
+                borderRadius: '20px',
+                background: 'rgba(15, 23, 42, 0.72)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '10px',
+                  display: 'grid',
+                  placeItems: 'center',
+                  background: 'linear-gradient(135deg, #a855f7, #6366f1)',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '13px',
+                  marginBottom: '12px',
+                }}
+              >
+                {step}
+              </div>
+
+              <div
+                style={{
+                  color: '#ffffff',
+                  fontSize: '15px',
+                  fontWeight: 900,
+                  marginBottom: '5px',
+                }}
+              >
+                {title}
+              </div>
+
+              <div
+                style={{
+                  color: '#94a3b8',
+                  fontSize: '13px',
+                  lineHeight: 1.6,
+                }}
+              >
+                {text}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    );
-  }
-  `;
+    </div>
+  );
+}
+`;
 
   export default function Home() {
     const [version, setVersion] = useState<Version | null>(null);
