@@ -722,7 +722,7 @@ const restoredVersion = result.data.version;
           position: 'fixed',
           top: '18px',
           right: '18px',
-          zIndex: 200,
+          zIndex: 300,
           padding: '8px',
           borderRadius: '999px',
           background: 'rgba(15, 23, 42, 0.86)',
@@ -823,17 +823,18 @@ const restoredVersion = result.data.version;
               }}
             >
               <aside
-                style={{
-                  width: '400px',
-                  minWidth: '400px',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                  borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-                  background: '#0a0a0a',
-                }}
-              >
+  style={{
+    width: '380px',
+    minWidth: '340px',
+    maxWidth: '420px',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+    background: '#0a0a0a',
+  }}
+>
                 <ProjectSelector
                   projects={projects}
                   currentProjectId={currentProject?.id || null}
