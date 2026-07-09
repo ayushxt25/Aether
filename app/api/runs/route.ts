@@ -51,7 +51,7 @@ export async function GET() {
     });
 
     return successResponse({
-      runs: runs.map((run) => ({
+      runs: runs.map((run: any) => ({
         id: run.id,
         versionId: run.id,
         versionNo: run.versionNo,
