@@ -13,7 +13,7 @@ Aether is a full-stack Next.js workspace that converts natural language prompts 
 [![Gemini / OpenRouter](https://img.shields.io/badge/Gemini%20%2F%20OpenRouter-AI_Pipeline-1A73E8?style=for-the-badge)](#ai-pipeline)
 [![Vercel](https://img.shields.io/badge/Vercel-Deploy-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 
-**Live Demo:** [Coming Soon / Add deployed link here](#)  
+**Live Demo:** [Link](https://aether-nine-kappa.vercel.app/)  
 **Repository:** [ayushxt25/Aether](https://github.com/ayushxt25/Aether)  
 **Screenshots:** See the [Screenshots](#screenshots) section below
 
