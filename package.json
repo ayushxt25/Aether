@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
+    "postinstall": "prisma generate",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:stress": "tsx scripts/stress_test.ts"
