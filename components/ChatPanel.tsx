@@ -415,13 +415,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
 
       <div
-        style={{
-          padding: '16px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          background: 'rgba(8, 9, 14, 0.96)',
-          flexShrink: 0,
-        }}
-      >
+  style={{
+    padding: '12px',
+    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(8, 9, 14, 0.98)',
+    flexShrink: 0,
+    position: 'sticky',
+    bottom: 0,
+    zIndex: 20,
+  }}
+>
         <div
           style={{
             position: 'relative',
@@ -436,7 +439,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           <textarea
             style={{
               width: '100%',
-              minHeight: '108px',
+              minHeight: '72px',
+maxHeight: '110px',
               resize: 'none',
               borderRadius: '15px',
               border: 'none',
@@ -501,8 +505,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             textAlign: 'center',
           }}
         >
-          Enter to send · Shift + Enter for new line ·{' '}
-          {currentVersionId ? `Editing v${currentVersionId}` : 'New generation'}
+          Enter to send · Shift + Enter for new line
         </p>
       </div>
     </div>
