@@ -274,7 +274,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             gap: '8px',
           }}
         >
-          {suggestions.slice(0, 3).map((suggestion) => (
+          {suggestions.slice(0, 2).map((suggestion) => (
             <button
               key={suggestion}
               type="button"
@@ -416,13 +416,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
       <div
   style={{
-    padding: '12px',
+    padding: '10px 12px',
     borderTop: '1px solid rgba(255, 255, 255, 0.1)',
     background: 'rgba(8, 9, 14, 0.98)',
     flexShrink: 0,
     position: 'sticky',
     bottom: 0,
-    zIndex: 20,
+    zIndex: 30,
   }}
 >
         <div
@@ -439,8 +439,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           <textarea
             style={{
               width: '100%',
-              minHeight: '72px',
-maxHeight: '110px',
+              minHeight: '64px',
+maxHeight: '96px',
               resize: 'none',
               borderRadius: '15px',
               border: 'none',
