@@ -35,14 +35,11 @@ Aether brings those workflows together in one workspace:
 
 Screenshots will be added after final UI capture.
 
-![Landing Page](./screenshots/landing-page.png)
-![Workspace Dashboard](./screenshots/workspace-dashboard.png)
-![AI UI Generation](./screenshots/ai-ui-generation.png)
-![Live Preview](./screenshots/live-preview.png)
-![Code Editor](./screenshots/code-editor.png)
-![Version History](./screenshots/version-history.png)
-![Prompt Runs](./screenshots/prompt-runs.png)
-![Project Management](./screenshots/project-management.png)
+![Landing Page](./screenshots/Login-page.png)
+![Authentication](./screenshots/Authentication.png)
+![Workspace Dashboard](./screenshots/User-Workspace.png)
+![Code Editor](./screenshots/Visual-&-Code.png)
+![Prompt Runs](./screenshots/Prompt-History.png)
 
 ## Features
 
