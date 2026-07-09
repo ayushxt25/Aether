@@ -331,4 +331,4 @@ Aether is actively being improved as a production-grade AI UI generation workspa
 **Ayush Kumar Giri**
 
 - GitHub: https://github.com/ayushxt25
-- LinkedIn: [Add LinkedIn link here](#)
+- LinkedIn: [](https://www.linkedin.com/in/ayush-giri-04544a348/)
