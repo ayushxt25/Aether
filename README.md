@@ -15,7 +15,6 @@ Aether is a full-stack Next.js workspace that converts natural language prompts 
 
 **Live Demo:** [Aether](https://aether-nine-kappa.vercel.app/)  
 **Repository:** [ayushxt25/Aether](https://github.com/ayushxt25/Aether)  
-**Screenshots:** See the [Screenshots](#screenshots) section below
 
 ## Overview
 
